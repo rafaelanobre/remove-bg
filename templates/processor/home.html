@@ -5,20 +5,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Background Remover</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'processor/css/style.css' %}">
 </head>
 <body>
     <h1>Background Remover</h1>
     <p>Upload an image to remove its background.</p>
 
-    {% if message %}
-        <p class="message">{{ message }}</p>
-    {% endif %}
-    <form method="POST" enctype="multipart/form-data">
+    <form id="upload-form" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">Remove Background</button>
+        <input type="file" name="image" id="image-input" accept="image/*" required>
+        <button type="submit" id="submit-btn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Remove Background
+        </button>
     </form>
 
+    <div id="loading" style="display: none;">
+        <p>Processing... This may take a few seconds.</p>
+    </div>
+
+    <div id="result" style="display: none;">
+        <h2>Result:</h2>
+        <img id="output-image" alt="Processed image">
+        <div class="button-group">
+            <button id="download-btn">
+                <i class="fa-solid fa-download"></i> Download
+            </button>
+            <button id="copy-btn">
+                <i class="fa-solid fa-copy"></i> Copy Image
+            </button>
+        </div>
+    </div>
+
+    <script src="{% static 'processor/js/main.js' %}"></script>
 </body>
 </html>
