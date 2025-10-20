@@ -1,0 +1,60 @@
+# Virtual environments (we'll create a fresh one in Docker)
+.venv/
+venv/
+env/
+
+# Python cache files (not needed, will be regenerated)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Package build artifacts
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Git files (version control not needed in container)
+.git/
+.gitignore
+
+# Documentation files (not needed in production)
+*.md
+README.md
+CLAUDE.md
+projectplan.md
+
+# Environment files (secrets should come from environment variables)
+.env
+.env.local
+*.env
+
+# Database files (if using SQLite for development)
+*.sqlite3
+db.sqlite3
+
+# Static files (will be collected during build)
+staticfiles/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files and coverage reports
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docker files themselves (no need to copy into the image)
+Dockerfile
+docker-compose.yml
+.dockerignore

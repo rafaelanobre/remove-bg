@@ -1,10 +1,19 @@
 [project]
 name = "remove-bg"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI background remover web app built with Django and rembg. Upload images, remove backgrounds instantly, download or copy results."
+readme = "README.md"
+license = { text = "MIT" }
+keywords = ["django", "rembg", "background removal", "ai", "web app"]
+authors = [
+    { name = "Rafaela Nobre", email = "raafanobre@gmail.com" },
+]
 requires-python = ">=3.12"
 dependencies = [
     "django>=5.2.7",
+    "gunicorn>=23.0.0",
     "pillow>=12.0.0",
+    "python-decouple>=3.8",
     "rembg[cpu]>=2.0.67",
+    "whitenoise>=6.11.0",
 ]
