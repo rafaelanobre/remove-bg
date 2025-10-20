@@ -1,8 +1,9 @@
 from io import BytesIO
-from PIL import Image
-from django.shortcuts import render
-from rembg import remove
+
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+from PIL import Image
+from rembg import remove
 
 
 def health_check(request):
