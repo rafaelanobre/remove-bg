@@ -38,10 +38,6 @@ RUN /app/.venv/bin/python -c "from rembg import remove; from PIL import Image; i
     buf.seek(0); \
     remove(buf.read());"
 
-# Unset temporary env vars
-ENV SECRET_KEY= \
-    ALLOWED_HOSTS=
-
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
