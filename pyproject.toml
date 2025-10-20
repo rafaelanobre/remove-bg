@@ -17,3 +17,8 @@ dependencies = [
     "rembg[cpu]>=2.0.67",
     "whitenoise>=6.11.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.1",
+]

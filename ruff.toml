@@ -1,0 +1,48 @@
+target-version = "py312"
+
+extend-exclude = [
+    "migrations",
+    "*/migrations/*",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "staticfiles",
+    "media",
+]
+
+[lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "N",
+    "UP",
+    "B",
+    "SIM",
+    "C4",
+    "DJ",
+    "RUF"
+]
+
+ignore = [
+    "E501",
+    "DJ008",
+    "A003",
+    "PLR0913",
+    "PLR0912",
+    "B904",
+]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[lint.pyupgrade]
+keep-runtime-typing = true
+
+[format]
+quote-style = "single"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 72
