@@ -9,6 +9,7 @@ from rembg import remove
 def health_check(request):
     return JsonResponse({'status': 'OK'})
 
+
 def home(request):
     if request.method == 'POST':
         uploaded_file = request.FILES.get('image')

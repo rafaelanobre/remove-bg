@@ -18,6 +18,7 @@ class HealthCheckTests(TestCase):
         response = self.client.get(reverse('health'))
         self.assertEqual(response.json(), {'status': 'OK'})
 
+
 class HomePageTests(TestCase):
     def setUp(self):
         self.client = Client()
