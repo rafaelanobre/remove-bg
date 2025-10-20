@@ -1,0 +1,12 @@
+services:
+  - type: web
+    plan: free
+    name: remove-bg
+    runtime: docker
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PORT
+        value: 8000
