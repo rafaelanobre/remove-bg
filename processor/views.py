@@ -2,7 +2,11 @@ from io import BytesIO
 from PIL import Image
 from django.shortcuts import render
 from rembg import remove
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+
+
+def health_check(request):
+    return JsonResponse({'status': 'OK'})
 
 def home(request):
     if request.method == 'POST':
