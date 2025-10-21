@@ -48,8 +48,64 @@ jobs:
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      GCP_PROJECT_ID: remove-bg-475814
+      GCP_REGION: us-central1
+      SERVICE_NAME: remove-bg
+      ARTIFACT_REGISTRY_REPO: us-central1-docker.pkg.dev/remove-bg-475814/remove-bg
+
     steps:
-      - name: Deployment Notification
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push Docker image
         run: |
-          echo "Tests passed! Render will auto-deploy from main branch."
-          echo "Check Render dashboard for deployment status."
+          gcloud builds submit \
+            --config=cloudbuild.yaml \
+            --project=${{ env.GCP_PROJECT_ID }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          image: ${{ env.ARTIFACT_REGISTRY_REPO }}/app:latest
+          region: ${{ env.GCP_REGION }}
+          flags: |
+            --memory=2Gi
+            --cpu=2
+            --timeout=300
+            --max-instances=2
+            --min-instances=0
+            --allow-unauthenticated
+          env_vars: |
+            DEBUG=False
+          secrets: |
+            SECRET_KEY=django-secret-key:latest
+
+      - name: Update service with dynamic URL
+        run: |
+          SERVICE_URL="${{ steps.deploy.outputs.url }}"
+          SERVICE_HOST="${SERVICE_URL#https://}"
+
+          gcloud run services update ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --update-env-vars="ALLOWED_HOSTS=${SERVICE_HOST},CSRF_TRUSTED_ORIGINS=${SERVICE_URL}" \
+            --project=${{ env.GCP_PROJECT_ID }}
+
+      - name: Show deployment URL
+        run: |
+          echo "Service deployed successfully!"
+          echo "URL: ${{ steps.deploy.outputs.url }}"

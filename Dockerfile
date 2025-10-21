@@ -42,7 +42,7 @@ RUN /app/.venv/bin/python -c "from rembg import remove; from PIL import Image; i
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 8000
+EXPOSE 8080
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/app/.venv/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120", "remove_bg.wsgi:application"]
+CMD /app/.venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 300 remove_bg.wsgi:application

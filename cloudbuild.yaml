@@ -1,0 +1,21 @@
+steps:
+  # Build the container image using docker with BuildKit
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/app:latest'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/app:$BUILD_ID'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/app:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/app:$BUILD_ID'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1200s
