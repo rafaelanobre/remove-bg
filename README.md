@@ -6,6 +6,15 @@ Built with Django and powered by the rembg library for CPU-based background remo
 ![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![Django](https://img.shields.io/badge/django-5.2.7+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Deployment](https://img.shields.io/badge/deployed-Google%20Cloud%20Run-4285F4.svg)
+
+## Live Demo
+
+**| Try it now:** [https://remove-bg-1074036933469.us-central1.run.app](https://remove-bg-1074036933469.us-central1.run.app)
+
+Upload an image → AI removes background → Download or copy the result!
+
+> **Note:** First request after idle may take 10-15 seconds (cold start). Subsequent requests are fast!
 
 ## Features
 
@@ -13,10 +22,7 @@ Built with Django and powered by the rembg library for CPU-based background remo
 - **Instant Preview** - See results immediately with transparent background indicator
 - **Download & Copy** - Save as PNG or copy directly to clipboard
 - **Runs anywhere** - CPU-based processing, no GPU required
-
-## Demo
-
-Upload an image → AI removes background → Download or copy the result!
+- **Production Ready** - Deployed on Google Cloud Run with CI/CD via GitHub Actions
 
 ## Tech Stack
 
@@ -126,19 +132,43 @@ python manage.py test
 ### Code Style
 This project follows PEP 8 guidelines and Django best practices.
 
+## Deployment
+
+This application is deployed on **Google Cloud Run** with automated CI/CD:
+
+- **Platform**: Cloud Run (serverless containers)
+- **Region**: us-central1
+- **CI/CD**: GitHub Actions
+- **Configuration**: 2GB RAM, 2 vCPU, 300s timeout
+- **Scaling**: 0-2 instances (scales to zero when idle)
+- **Cost**: Free tier covers 2M requests/month
+
+### Deployment Pipeline
+
+Every push to `main` triggers:
+1. **Test Job**: Linting (ruff), formatting check, unit tests, Docker build
+2. **Deploy Job**: Cloud Build → Artifact Registry → Cloud Run deployment
+
+See `.github/workflows/deploy.yml` for the complete CI/CD configuration.
+
 ## Roadmap
 
+**Phase 1-5: Complete ✅**
 - [x] Basic upload and processing
 - [x] Download and copy functionality
 - [x] Loading indicators
+- [x] Docker support with multi-stage builds
+- [x] CI/CD pipeline via GitHub Actions
+- [x] Production deployment on Google Cloud Run
+
+**Phase 6-8: Planned**
 - [ ] Canvas-based retouch tool (eraser/restore)
 - [ ] Drag-and-drop upload
 - [ ] Batch processing (multiple images)
 - [ ] File validation and error handling
 - [ ] Rate limiting
-- [ ] Docker support
-- [ ] CI/CD pipeline
-- [ ] Production deployment
+- [ ] Background task queue with Celery + Redis
+- [ ] Infrastructure as Code with Terraform
 
 ## License
 
