@@ -1,9 +1,15 @@
 name: CI/CD Pipeline
+
 on:
   push:
     branches: [ main ]
   pull_request:
-      branches: [ main ]
+    branches: [ main ]
+
+# Prevent concurrent deployments to the same environment
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -76,6 +82,30 @@ jobs:
             --config=cloudbuild.yaml \
             --project=${{ env.GCP_PROJECT_ID }}
 
+      - name: Get existing service URL (if exists)
+        id: get-url
+        run: |
+          set +e  # Allow command to fail without stopping script
+          EXISTING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --format='value(status.url)' 2>/dev/null)
+          EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+
+          if [ $EXIT_CODE -eq 0 ] && [ -n "$EXISTING_URL" ]; then
+            echo "SERVICE_URL=${EXISTING_URL}" >> "$GITHUB_OUTPUT"
+            echo "SERVICE_HOST=${EXISTING_URL#https://}" >> "$GITHUB_OUTPUT"
+            echo "first_deployment=false" >> "$GITHUB_OUTPUT"
+            echo "Using existing URL: ${EXISTING_URL}"
+          else
+            # For first deployment, use a wildcard pattern that matches Cloud Run URLs
+            echo "SERVICE_URL=" >> "$GITHUB_OUTPUT"
+            echo "SERVICE_HOST=.run.app" >> "$GITHUB_OUTPUT"
+            echo "first_deployment=true" >> "$GITHUB_OUTPUT"
+            echo "First deployment - using wildcard .run.app"
+          fi
+
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
@@ -92,13 +122,24 @@ jobs:
             --allow-unauthenticated
           env_vars: |
             DEBUG=False
+            ALLOWED_HOSTS=${{ steps.get-url.outputs.SERVICE_HOST }}
+            CSRF_TRUSTED_ORIGINS=${{ steps.get-url.outputs.SERVICE_URL }}
           secrets: |
             SECRET_KEY=django-secret-key:latest
 
-      - name: Update service with dynamic URL
+      - name: Update service with correct URL (if needed)
+        if: steps.get-url.outputs.first_deployment == 'true'
         run: |
           SERVICE_URL="${{ steps.deploy.outputs.url }}"
           SERVICE_HOST="${SERVICE_URL#https://}"
+
+          echo "First deployment detected. Updating with actual URL: ${SERVICE_URL}"
+
+          # Wait for service to be fully ready
+          gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --format='value(status.conditions[0].status)' > /dev/null
 
           gcloud run services update ${{ env.SERVICE_NAME }} \
             --region=${{ env.GCP_REGION }} \
