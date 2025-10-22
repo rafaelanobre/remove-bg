@@ -10,7 +10,7 @@ Built with Django and powered by the rembg library for CPU-based background remo
 
 ## Live Demo
 
-**| Try it now:** [https://remove-bg-1074036933469.us-central1.run.app](https://remove-bg-1074036933469.us-central1.run.app)
+**| [Try it live now!](https://remove-bg-1074036933469.us-central1.run.app)**
 
 Upload an image → AI removes background → Download or copy the result!
 
