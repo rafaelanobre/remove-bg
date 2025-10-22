@@ -82,22 +82,40 @@ jobs:
             --config=cloudbuild.yaml \
             --project=${{ env.GCP_PROJECT_ID }}
 
-      - name: Get existing service URL (if exists)
+      - name: Get existing service URLs (if exists)
         id: get-url
         run: |
           set +e  # Allow command to fail without stopping script
-          EXISTING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+
+          # Get all possible URLs for the service
+          PRIMARY_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
             --format='value(status.url)' 2>/dev/null)
           EXIT_CODE=$?
+
+          # Cloud Run may provide multiple URLs (aliases), get them all
+          ADDITIONAL_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --format='value(status.address.url)' 2>/dev/null || echo "")
+
           set -e  # Re-enable exit on error
 
-          if [ $EXIT_CODE -eq 0 ] && [ -n "$EXISTING_URL" ]; then
-            echo "SERVICE_URL=${EXISTING_URL}" >> "$GITHUB_OUTPUT"
-            echo "SERVICE_HOST=${EXISTING_URL#https://}" >> "$GITHUB_OUTPUT"
+          if [ $EXIT_CODE -eq 0 ] && [ -n "$PRIMARY_URL" ]; then
+            # Build comma-separated list of URLs
+            CSRF_ORIGINS="${PRIMARY_URL}"
+            ALLOWED_HOSTS="${PRIMARY_URL#https://}"
+
+            if [ -n "$ADDITIONAL_URL" ] && [ "$ADDITIONAL_URL" != "$PRIMARY_URL" ]; then
+              CSRF_ORIGINS="${CSRF_ORIGINS},${ADDITIONAL_URL}"
+              ALLOWED_HOSTS="${ALLOWED_HOSTS},${ADDITIONAL_URL#https://}"
+            fi
+
+            echo "SERVICE_URL=${CSRF_ORIGINS}" >> "$GITHUB_OUTPUT"
+            echo "SERVICE_HOST=${ALLOWED_HOSTS}" >> "$GITHUB_OUTPUT"
             echo "first_deployment=false" >> "$GITHUB_OUTPUT"
-            echo "Using existing URL: ${EXISTING_URL}"
+            echo "Using existing URLs: ${CSRF_ORIGINS}"
           else
             # For first deployment, use a wildcard pattern that matches Cloud Run URLs
             echo "SERVICE_URL=" >> "$GITHUB_OUTPUT"
