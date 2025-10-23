@@ -3,7 +3,9 @@ from io import BytesIO
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from PIL import Image
-from rembg import remove
+from rembg import new_session, remove
+
+_rembg_session = new_session()
 
 
 def health_check(request):
@@ -16,7 +18,7 @@ def home(request):
         if uploaded_file:
             input_image = Image.open(uploaded_file)
 
-            output_image = remove(input_image)
+            output_image = remove(input_image, session=_rembg_session)
 
             img_io = BytesIO()
             output_image.save(img_io, format='PNG')
