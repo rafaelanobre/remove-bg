@@ -87,27 +87,24 @@ jobs:
         run: |
           set +e  # Allow command to fail without stopping script
 
-          PRIMARY_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+          # Extract all URLs from the run.googleapis.com/urls annotation
+          SERVICE_URLS=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
-            --format='value(status.url)' 2>/dev/null)
+            --format='value(metadata.annotations."run.googleapis.com/urls")' 2>/dev/null)
           EXIT_CODE=$?
           set -e  # Re-enable exit on error
 
-          if [ $EXIT_CODE -eq 0 ] && [ -n "$PRIMARY_URL" ]; then
-            # Cloud Run has both modern and legacy URL formats
-            # Both are permanent and should be in ALLOWED_HOSTS
-            LEGACY_URL="https://remove-bg-5osl6hp5aq-uc.a.run.app"
-            MODERN_URL="https://remove-bg-1074036933469.us-central1.run.app"
-
-            # Build comma-separated lists including both known URLs
-            CSRF_ORIGINS="${LEGACY_URL},${MODERN_URL}"
-            ALLOWED_HOSTS="${LEGACY_URL#https://},${MODERN_URL#https://}"
+          if [ $EXIT_CODE -eq 0 ] && [ -n "$SERVICE_URLS" ]; then
+            # Parse the JSON array of URLs and convert to comma-separated list
+            # Format: '["https://url1","https://url2"]' -> "https://url1,https://url2"
+            CSRF_ORIGINS=$(echo "$SERVICE_URLS" | sed 's/\[//; s/\]//; s/"//g; s/ //g')
+            ALLOWED_HOSTS=$(echo "$CSRF_ORIGINS" | sed 's|https://||g')
 
             echo "SERVICE_URL=${CSRF_ORIGINS}" >> "$GITHUB_OUTPUT"
             echo "SERVICE_HOST=${ALLOWED_HOSTS}" >> "$GITHUB_OUTPUT"
             echo "first_deployment=false" >> "$GITHUB_OUTPUT"
-            echo "Using both Cloud Run URLs: ${ALLOWED_HOSTS}"
+            echo "Using Cloud Run URLs from annotation: ${ALLOWED_HOSTS}"
           else
             # For first deployment, use a wildcard pattern that matches Cloud Run URLs
             echo "SERVICE_URL=" >> "$GITHUB_OUTPUT"
@@ -134,6 +131,7 @@ jobs:
             DEBUG=False
             ALLOWED_HOSTS=${{ steps.get-url.outputs.SERVICE_HOST }}
             CSRF_TRUSTED_ORIGINS=${{ steps.get-url.outputs.SERVICE_URL }}
+            ORT_DISABLE_ADVANCED_CPU_FEATURES=1
           secrets: |
             SECRET_KEY=django-secret-key:latest
 

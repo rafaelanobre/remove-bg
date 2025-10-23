@@ -6,7 +6,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=never \
-    UV_PROJECT_ENVIRONMENT=/app/.venv
+    UV_PROJECT_ENVIRONMENT=/app/.venv \
+    ORT_DISABLE_ADVANCED_CPU_FEATURES=1
 
 # Install system dependencies required by rembg and Pillow
 RUN apt-get update && apt-get install -y \
