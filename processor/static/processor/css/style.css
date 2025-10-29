@@ -168,7 +168,8 @@ button:hover {
     margin-right: 5px;
 }
 
-#brush-size {
+#brush-size,
+#brush-hardness {
     width: 100%;
     cursor: pointer;
 }

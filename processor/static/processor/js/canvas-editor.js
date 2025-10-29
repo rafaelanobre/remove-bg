@@ -8,6 +8,7 @@ class CanvasEditor {
         this.originalImage = null;
 
         this.brushSize = 20;
+        this.brushHardness = 100;
         this.brushMode = 'erase';
         this.isDrawing = false;
         this.lastX = 0;
@@ -105,10 +106,17 @@ class CanvasEditor {
 
         const brushSizeSlider = document.getElementById('brush-size');
         const brushSizeValue = document.getElementById('brush-size-value');
+        const brushHardnessSlider = document.getElementById('brush-hardness');
+        const brushHardnessValue = document.getElementById('brush-hardness-value');
 
         brushSizeSlider.addEventListener('input', (e) => {
             this.brushSize = parseInt(e.target.value);
             brushSizeValue.textContent = this.brushSize;
+        });
+
+        brushHardnessSlider.addEventListener('input', (e) => {
+            this.brushHardness = parseInt(e.target.value);
+            brushHardnessValue.textContent = this.brushHardness;
         });
 
         const eraseModeBtn = document.getElementById('erase-mode-btn');
@@ -171,30 +179,56 @@ class CanvasEditor {
 
         if (this.brushMode === 'erase') {
             this.editorCtx.globalCompositeOperation = 'destination-out';
-            this.editorCtx.beginPath();
-            this.editorCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
-            this.editorCtx.fill();
-        } else if (this.brushMode === 'restore') {
-            this.editorCtx.save();
 
-            this.editorCtx.beginPath();
-            this.editorCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
-            this.editorCtx.clip();
+            if (this.brushHardness === 100) {
+                this.editorCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+                this.editorCtx.beginPath();
+                this.editorCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+                this.editorCtx.fill();
+            } else {
+                const gradient = this.editorCtx.createRadialGradient(
+                    canvasX, canvasY, radius * (this.brushHardness / 100),
+                    canvasX, canvasY, radius
+                );
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                this.editorCtx.fillStyle = gradient;
+                this.editorCtx.beginPath();
+                this.editorCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+                this.editorCtx.fill();
+            }
 
             this.editorCtx.globalCompositeOperation = 'source-over';
-            this.editorCtx.drawImage(
-                this.backupCanvas,
-                canvasX - radius,
-                canvasY - radius,
-                radius * 2,
-                radius * 2,
-                canvasX - radius,
-                canvasY - radius,
-                radius * 2,
-                radius * 2
-            );
+        } else if (this.brushMode === 'restore') {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.editorCanvas.width;
+            tempCanvas.height = this.editorCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
 
-            this.editorCtx.restore();
+            if (this.brushHardness === 100) {
+                tempCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+                tempCtx.beginPath();
+                tempCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+                tempCtx.fill();
+            } else {
+                const gradient = tempCtx.createRadialGradient(
+                    canvasX, canvasY, radius * (this.brushHardness / 100),
+                    canvasX, canvasY, radius
+                );
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                tempCtx.fillStyle = gradient;
+                tempCtx.beginPath();
+                tempCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+                tempCtx.fill();
+            }
+
+            tempCtx.globalCompositeOperation = 'source-in';
+            tempCtx.drawImage(this.backupCanvas, 0, 0);
+
+            this.editorCtx.drawImage(tempCanvas, 0, 0);
         }
     }
 
