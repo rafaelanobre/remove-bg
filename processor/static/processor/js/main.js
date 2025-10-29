@@ -6,9 +6,16 @@ const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
 const imageInput = document.getElementById('image-input');
 
+let originalImageUrl = null;
+
 imageInput.addEventListener('change', () => {
     result.style.display = 'none';
     outputImage.src = '';
+
+    const file = imageInput.files[0];
+    if (file) {
+        originalImageUrl = URL.createObjectURL(file);
+    }
 });
 
 form.addEventListener('submit', async (e) => {
@@ -30,6 +37,7 @@ form.addEventListener('submit', async (e) => {
             const imageUrl = URL.createObjectURL(blob);
 
             outputImage.src = imageUrl;
+            outputImage.dataset.originalSrc = originalImageUrl;
             loading.style.display = 'none';
             result.style.display = 'block';
 

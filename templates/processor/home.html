@@ -42,11 +42,38 @@
 
     <div id="canvas-editor" style="display: none;">
         <h2>Retouch Image</h2>
-        <div>
-            <label for="brush-size">Brush Size: <span id="brush-size-value">20</span>px</label>
-            <input type="range" id="brush-size" min="5" max="100" value="20">
+
+        <div class="canvas-controls">
+            <div class="control-group">
+                <label>Brush Mode:</label>
+                <div class="mode-toggle">
+                    <button id="erase-mode-btn" class="mode-btn active">
+                        <i class="fa-solid fa-eraser"></i> Erase
+                    </button>
+                    <button id="restore-mode-btn" class="mode-btn">
+                        <i class="fa-solid fa-rotate-left"></i> Restore
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="brush-size">Brush Size: <span id="brush-size-value">20</span>px</label>
+                <input type="range" id="brush-size" min="5" max="100" value="20">
+            </div>
+
+            <div class="control-group action-buttons">
+                <button id="reset-btn" class="action-btn">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                </button>
+                <button id="done-btn" class="action-btn done">
+                    <i class="fa-solid fa-check"></i> Done
+                </button>
+            </div>
         </div>
-        <canvas id="editor-canvas"></canvas>
+
+        <div class="canvas-container">
+            <canvas id="editor-canvas"></canvas>
+        </div>
         <canvas id="backup-canvas" style="display: none;"></canvas>
     </div>
 

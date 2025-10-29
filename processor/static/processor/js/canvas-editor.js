@@ -4,9 +4,11 @@ class CanvasEditor {
         this.backupCanvas = document.getElementById('backup-canvas');
         this.editorCtx = null;
         this.backupCtx = null;
-        this.sourceImage = null;
+        this.processedImage = null;
+        this.originalImage = null;
 
         this.brushSize = 20;
+        this.brushMode = 'erase';
         this.isDrawing = false;
         this.lastX = 0;
         this.lastY = 0;
@@ -37,18 +39,35 @@ class CanvasEditor {
             return;
         }
 
-        this.sourceImage = new Image();
-        this.sourceImage.onload = () => {
-            this.setupCanvasDimensions();
-            this.loadImageToCanvases();
-            this.showEditor();
+        const originalSrc = outputImage.dataset.originalSrc;
+        if (!originalSrc) {
+            console.error('No original image available');
+            return;
+        }
+
+        this.processedImage = new Image();
+        this.originalImage = new Image();
+
+        let imagesLoaded = 0;
+        const onImageLoad = () => {
+            imagesLoaded++;
+            if (imagesLoaded === 2) {
+                this.setupCanvasDimensions();
+                this.loadImageToCanvases();
+                this.showEditor();
+            }
         };
-        this.sourceImage.src = outputImage.src;
+
+        this.processedImage.onload = onImageLoad;
+        this.originalImage.onload = onImageLoad;
+
+        this.processedImage.src = outputImage.src;
+        this.originalImage.src = originalSrc;
     }
 
     setupCanvasDimensions() {
-        const width = this.sourceImage.naturalWidth;
-        const height = this.sourceImage.naturalHeight;
+        const width = this.processedImage.naturalWidth;
+        const height = this.processedImage.naturalHeight;
 
         this.editorCanvas.width = width;
         this.editorCanvas.height = height;
@@ -58,14 +77,14 @@ class CanvasEditor {
 
     loadImageToCanvases() {
         this.editorCtx.drawImage(
-            this.sourceImage,
+            this.processedImage,
             0, 0,
             this.editorCanvas.width,
             this.editorCanvas.height
         );
 
         this.backupCtx.drawImage(
-            this.sourceImage,
+            this.originalImage,
             0, 0,
             this.backupCanvas.width,
             this.backupCanvas.height
@@ -91,6 +110,31 @@ class CanvasEditor {
             this.brushSize = parseInt(e.target.value);
             brushSizeValue.textContent = this.brushSize;
         });
+
+        const eraseModeBtn = document.getElementById('erase-mode-btn');
+        const restoreModeBtn = document.getElementById('restore-mode-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const doneBtn = document.getElementById('done-btn');
+
+        eraseModeBtn.addEventListener('click', () => this.setMode('erase'));
+        restoreModeBtn.addEventListener('click', () => this.setMode('restore'));
+        resetBtn.addEventListener('click', () => this.resetCanvas());
+        doneBtn.addEventListener('click', () => this.closeEditor());
+    }
+
+    setMode(mode) {
+        this.brushMode = mode;
+
+        const eraseModeBtn = document.getElementById('erase-mode-btn');
+        const restoreModeBtn = document.getElementById('restore-mode-btn');
+
+        if (mode === 'erase') {
+            eraseModeBtn.classList.add('active');
+            restoreModeBtn.classList.remove('active');
+        } else {
+            restoreModeBtn.classList.add('active');
+            eraseModeBtn.classList.remove('active');
+        }
     }
 
     startDrawing(e) {
@@ -98,8 +142,6 @@ class CanvasEditor {
         const rect = this.editorCanvas.getBoundingClientRect();
         this.lastX = e.clientX - rect.left;
         this.lastY = e.clientY - rect.top;
-
-        this.editorCtx.globalCompositeOperation = 'destination-out';
     }
 
     draw(e) {
@@ -127,9 +169,51 @@ class CanvasEditor {
         const canvasY = y * scaleY;
         const radius = this.brushSize;
 
-        this.editorCtx.beginPath();
-        this.editorCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
-        this.editorCtx.fill();
+        if (this.brushMode === 'erase') {
+            this.editorCtx.globalCompositeOperation = 'destination-out';
+            this.editorCtx.beginPath();
+            this.editorCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+            this.editorCtx.fill();
+        } else if (this.brushMode === 'restore') {
+            this.editorCtx.save();
+
+            this.editorCtx.beginPath();
+            this.editorCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+            this.editorCtx.clip();
+
+            this.editorCtx.globalCompositeOperation = 'source-over';
+            this.editorCtx.drawImage(
+                this.backupCanvas,
+                canvasX - radius,
+                canvasY - radius,
+                radius * 2,
+                radius * 2,
+                canvasX - radius,
+                canvasY - radius,
+                radius * 2,
+                radius * 2
+            );
+
+            this.editorCtx.restore();
+        }
+    }
+
+    resetCanvas() {
+        this.editorCtx.clearRect(0, 0, this.editorCanvas.width, this.editorCanvas.height);
+        this.editorCtx.drawImage(
+            this.processedImage,
+            0, 0,
+            this.editorCanvas.width,
+            this.editorCanvas.height
+        );
+    }
+
+    closeEditor() {
+        const outputImage = document.getElementById('output-image');
+        outputImage.src = this.editorCanvas.toDataURL('image/png');
+
+        document.getElementById('canvas-editor').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
     }
 }
 

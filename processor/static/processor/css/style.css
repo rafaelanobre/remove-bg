@@ -108,3 +108,130 @@ button:hover {
 #copy-btn.copied {
     background-color: #6c757d;
 }
+
+#canvas-editor {
+    margin-top: 20px;
+}
+
+.canvas-controls {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.mode-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 10px 15px;
+    background-color: #fff;
+    color: #333;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.mode-btn:hover {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+}
+
+.mode-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.mode-btn i {
+    margin-right: 5px;
+}
+
+#brush-size {
+    width: 100%;
+    cursor: pointer;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.action-btn i {
+    margin-right: 5px;
+}
+
+#reset-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+#reset-btn:hover {
+    background-color: #5a6268;
+}
+
+#done-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+#done-btn:hover {
+    background-color: #218838;
+}
+
+.canvas-container {
+    background:
+        repeating-conic-gradient(#ddd 0% 25%, white 0% 50%)
+        50% / 20px 20px;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    display: inline-block;
+}
+
+#editor-canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    cursor: crosshair;
+}
+
+#retouch-btn {
+    background-color: #fd7e14;
+    color: white;
+}
+
+#retouch-btn:hover {
+    background-color: #e76b00;
+}
