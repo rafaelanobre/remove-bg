@@ -211,6 +211,24 @@ button:hover {
     background-color: #218838;
 }
 
+#undo-btn,
+#redo-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+#undo-btn:hover:not(:disabled),
+#redo-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+#undo-btn:disabled,
+#redo-btn:disabled {
+    background-color: #6c757d;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .canvas-container {
     background:
         repeating-conic-gradient(#ddd 0% 25%, white 0% 50%)
@@ -226,6 +244,7 @@ button:hover {
     max-width: 100%;
     height: auto;
     cursor: crosshair;
+    touch-action: none;
 }
 
 #retouch-btn {

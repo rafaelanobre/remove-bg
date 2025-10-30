@@ -14,6 +14,10 @@ class CanvasEditor {
         this.lastX = 0;
         this.lastY = 0;
 
+        this.historyStack = [];
+        this.historyIndex = -1;
+        this.maxHistoryStates = 20;
+
         this.initializeCanvases();
         this.attachEventListeners();
     }
@@ -95,6 +99,9 @@ class CanvasEditor {
     showEditor() {
         document.getElementById('result').style.display = 'none';
         document.getElementById('canvas-editor').style.display = 'block';
+        this.historyStack = [];
+        this.historyIndex = -1;
+        this.saveState();
         this.attachCanvasEventListeners();
     }
 
@@ -103,6 +110,51 @@ class CanvasEditor {
         this.editorCanvas.addEventListener('mousemove', (e) => this.draw(e));
         this.editorCanvas.addEventListener('mouseup', () => this.stopDrawing());
         this.editorCanvas.addEventListener('mouseout', () => this.stopDrawing());
+
+        this.editorCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            this.startDrawingTouch(touch);
+        });
+
+        this.editorCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            this.drawTouch(touch);
+        });
+
+        this.editorCanvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.stopDrawing();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
+                e.preventDefault();
+                this.redo();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                this.undo();
+            } else if (e.shiftKey && e.key === '[') {
+                e.preventDefault();
+                this.decreaseHardness();
+            } else if (e.shiftKey && e.key === ']') {
+                e.preventDefault();
+                this.increaseHardness();
+            } else if (e.key === '[') {
+                e.preventDefault();
+                this.decreaseBrushSize();
+            } else if (e.key === ']') {
+                e.preventDefault();
+                this.increaseBrushSize();
+            } else if (e.key === 'e' || e.key === 'E') {
+                e.preventDefault();
+                this.setMode('erase');
+            } else if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                this.setMode('restore');
+            }
+        });
 
         const brushSizeSlider = document.getElementById('brush-size');
         const brushSizeValue = document.getElementById('brush-size-value');
@@ -121,11 +173,15 @@ class CanvasEditor {
 
         const eraseModeBtn = document.getElementById('erase-mode-btn');
         const restoreModeBtn = document.getElementById('restore-mode-btn');
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
         const resetBtn = document.getElementById('reset-btn');
         const doneBtn = document.getElementById('done-btn');
 
         eraseModeBtn.addEventListener('click', () => this.setMode('erase'));
         restoreModeBtn.addEventListener('click', () => this.setMode('restore'));
+        undoBtn.addEventListener('click', () => this.undo());
+        redoBtn.addEventListener('click', () => this.redo());
         resetBtn.addEventListener('click', () => this.resetCanvas());
         doneBtn.addEventListener('click', () => this.closeEditor());
     }
@@ -166,7 +222,30 @@ class CanvasEditor {
     }
 
     stopDrawing() {
-        this.isDrawing = false;
+        if (this.isDrawing) {
+            this.isDrawing = false;
+            this.saveState();
+        }
+    }
+
+    startDrawingTouch(touch) {
+        this.isDrawing = true;
+        const rect = this.editorCanvas.getBoundingClientRect();
+        this.lastX = touch.clientX - rect.left;
+        this.lastY = touch.clientY - rect.top;
+    }
+
+    drawTouch(touch) {
+        if (!this.isDrawing) return;
+
+        const rect = this.editorCanvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        this.drawBrush(x, y);
+
+        this.lastX = x;
+        this.lastY = y;
     }
 
     drawBrush(x, y) {
@@ -240,6 +319,95 @@ class CanvasEditor {
             this.editorCanvas.width,
             this.editorCanvas.height
         );
+        this.saveState();
+    }
+
+    saveState() {
+        if (this.historyIndex < this.historyStack.length - 1) {
+            this.historyStack = this.historyStack.slice(0, this.historyIndex + 1);
+        }
+
+        const imageData = this.editorCtx.getImageData(
+            0, 0,
+            this.editorCanvas.width,
+            this.editorCanvas.height
+        );
+
+        this.historyStack.push(imageData);
+
+        if (this.historyStack.length > this.maxHistoryStates) {
+            this.historyStack.shift();
+        } else {
+            this.historyIndex++;
+        }
+
+        this.updateHistoryButtons();
+    }
+
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            const imageData = this.historyStack[this.historyIndex];
+            this.editorCtx.putImageData(imageData, 0, 0);
+            this.updateHistoryButtons();
+        }
+    }
+
+    redo() {
+        if (this.historyIndex < this.historyStack.length - 1) {
+            this.historyIndex++;
+            const imageData = this.historyStack[this.historyIndex];
+            this.editorCtx.putImageData(imageData, 0, 0);
+            this.updateHistoryButtons();
+        }
+    }
+
+    updateHistoryButtons() {
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+
+        if (undoBtn) {
+            undoBtn.disabled = this.historyIndex <= 0;
+        }
+        if (redoBtn) {
+            redoBtn.disabled = this.historyIndex >= this.historyStack.length - 1;
+        }
+    }
+
+    decreaseBrushSize() {
+        const newSize = Math.max(5, this.brushSize - 5);
+        this.brushSize = newSize;
+        const brushSizeSlider = document.getElementById('brush-size');
+        const brushSizeValue = document.getElementById('brush-size-value');
+        brushSizeSlider.value = newSize;
+        brushSizeValue.textContent = newSize;
+    }
+
+    increaseBrushSize() {
+        const newSize = Math.min(100, this.brushSize + 5);
+        this.brushSize = newSize;
+        const brushSizeSlider = document.getElementById('brush-size');
+        const brushSizeValue = document.getElementById('brush-size-value');
+        brushSizeSlider.value = newSize;
+        brushSizeValue.textContent = newSize;
+    }
+
+    decreaseHardness() {
+        const newHardness = Math.max(0, this.brushHardness - 10);
+        this.brushHardness = newHardness;
+        const brushHardnessSlider = document.getElementById('brush-hardness');
+        const brushHardnessValue = document.getElementById('brush-hardness-value');
+        brushHardnessSlider.value = newHardness;
+        brushHardnessValue.textContent = newHardness;
+    }
+
+    increaseHardness() {
+        const newHardness = Math.min(100, this.brushHardness + 10);
+        this.brushHardness = newHardness;
+        const brushHardnessSlider = document.getElementById('brush-hardness');
+        const brushHardnessValue = document.getElementById('brush-hardness-value');
+        brushHardnessSlider.value = newHardness;
+        brushHardnessValue.textContent = newHardness;
     }
 
     closeEditor() {
