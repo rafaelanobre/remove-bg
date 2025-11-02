@@ -145,3 +145,8 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# File Upload Validation Settings
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB in bytes
+ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
+ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']

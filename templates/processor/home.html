@@ -28,6 +28,9 @@
         <h2>Result:</h2>
         <img id="output-image" alt="Processed image">
         <div class="button-group">
+            <button id="retouch-btn">
+                <i class="fa-solid fa-paintbrush"></i> Retouch
+            </button>
             <button id="download-btn">
                 <i class="fa-solid fa-download"></i> Download
             </button>
@@ -37,6 +40,58 @@
         </div>
     </div>
 
+    <div id="canvas-editor" style="display: none;">
+        <h2>Retouch Image</h2>
+
+        <div class="canvas-controls">
+            <div class="control-group">
+                <label>Brush Mode:</label>
+                <div class="mode-toggle">
+                    <button id="erase-mode-btn" class="mode-btn active">
+                        <i class="fa-solid fa-eraser"></i> Erase
+                    </button>
+                    <button id="restore-mode-btn" class="mode-btn">
+                        <i class="fa-solid fa-rotate-left"></i> Restore
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="brush-size">Brush Size: <span id="brush-size-value">20</span>px</label>
+                <input type="range" id="brush-size" min="5" max="100" value="20">
+            </div>
+
+            <div class="control-group">
+                <label for="brush-hardness">Brush Hardness: <span id="brush-hardness-value">100</span>%</label>
+                <input type="range" id="brush-hardness" min="0" max="100" value="100">
+            </div>
+
+            <div class="control-group action-buttons">
+                <button id="undo-btn" class="action-btn" disabled>
+                    <i class="fa-solid fa-rotate-left"></i> Undo
+                </button>
+                <button id="redo-btn" class="action-btn" disabled>
+                    <i class="fa-solid fa-rotate-right"></i> Redo
+                </button>
+                <button id="reset-btn" class="action-btn">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                </button>
+                <button id="done-btn" class="action-btn done">
+                    <i class="fa-solid fa-check"></i> Done
+                </button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="editor-canvas"></canvas>
+        </div>
+        <canvas id="backup-canvas" style="display: none;"></canvas>
+    </div>
+
+    <script>
+        window.UPLOAD_CONFIG = {{ upload_config|safe }};
+    </script>
     <script src="{% static 'processor/js/main.js' %}"></script>
+    <script src="{% static 'processor/js/canvas-editor.js' %}"></script>
 </body>
 </html>
