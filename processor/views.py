@@ -44,7 +44,7 @@ def validate_image_file(uploaded_file):
     except UnidentifiedImageError:
         return False, 'Unable to process file. Please upload a valid image'
     except Exception as e:
-        return False, f'Error validating image: {str(e)}'
+        return False, f'Error validating image: {e!s}'
 
 
 def home(request):
@@ -66,16 +66,21 @@ def home(request):
             return HttpResponse(img_io, content_type='image/png')
 
         except Exception:
-            return JsonResponse({
-                'error': 'Failed to process image. Please try again or use a different image'
-            }, status=500)
+            return JsonResponse(
+                {
+                    'error': 'Failed to process image. Please try again or use a different image'
+                },
+                status=500,
+            )
 
     context = {
-        'upload_config': json.dumps({
-            'maxFileSize': settings.MAX_UPLOAD_SIZE,
-            'allowedTypes': settings.ALLOWED_IMAGE_TYPES,
-            'allowedExtensions': settings.ALLOWED_IMAGE_EXTENSIONS,
-        })
+        'upload_config': json.dumps(
+            {
+                'maxFileSize': settings.MAX_UPLOAD_SIZE,
+                'allowedTypes': settings.ALLOWED_IMAGE_TYPES,
+                'allowedExtensions': settings.ALLOWED_IMAGE_EXTENSIONS,
+            }
+        )
     }
 
     return render(request, 'processor/home.html', context)
