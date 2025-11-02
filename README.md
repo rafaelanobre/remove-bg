@@ -18,11 +18,20 @@ Upload an image → AI removes background → Download or copy the result!
 
 ## Features
 
+### Core Features
 - **AI-Powered** - Uses a neural network for accurate background removal with rembg
 - **Instant Preview** - See results immediately with transparent background indicator
 - **Download & Copy** - Save as PNG or copy directly to clipboard
 - **Runs anywhere** - CPU-based processing, no GPU required
 - **Production Ready** - Deployed on Google Cloud Run with CI/CD via GitHub Actions
+
+### Canvas Retouch Editor
+- **Professional Brush Tool** - Fine-tune AI results with precision editing
+- **Dual Modes** - Erase unwanted pixels or restore original background
+- **Configurable Brush** - Adjustable size (5-100px) and hardness (0-100%)
+- **Undo/Redo** - 20-level history for mistake-free editing
+- **Keyboard Shortcuts** - Professional workflow with hotkeys
+- **Touch Support** - Works on tablets and touch-enabled devices
 
 ## Tech Stack
 
@@ -82,6 +91,7 @@ Upload an image → AI removes background → Download or copy the result!
 
 ## Usage
 
+### Basic Workflow
 1. Click "Choose File" and select an image (JPG, PNG, etc.)
 2. Click "Remove Background" with the magic wand icon
 3. Wait a few seconds while the AI processes your image
@@ -89,6 +99,29 @@ Upload an image → AI removes background → Download or copy the result!
 5. Click "Download" to save as PNG or "Copy Image" to copy to clipboard
 
 **First-time use:** The AI model (~170MB) will be downloaded automatically on first run.
+
+### Retouch Workflow (Optional)
+After background removal, click **"Retouch"** to fine-tune the result:
+
+1. **Choose Mode**: Select "Erase" to remove pixels or "Restore" to bring back original background
+2. **Adjust Brush**: Use sliders to change brush size (5-100px) and hardness (0-100%)
+3. **Paint**: Click and drag on the canvas to edit
+4. **Undo/Redo**: Use buttons or keyboard shortcuts (Ctrl+Z / Ctrl+Shift+Z)
+5. **Reset**: Reload original AI result if needed
+6. **Done**: Save your edits and return to download
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `E` | Switch to Erase mode |
+| `R` | Switch to Restore mode |
+| `[` | Decrease brush size (-5px) |
+| `]` | Increase brush size (+5px) |
+| `Shift + [` | Decrease hardness (-10%) |
+| `Shift + ]` | Increase hardness (+10%) |
+| `Ctrl + Z` | Undo last stroke |
+| `Ctrl + Shift + Z` | Redo stroke |
 
 ## Project Structure
 
@@ -111,7 +144,8 @@ remove-bg/
 │           ├── css/       # Stylesheets
 │           │   └── style.css
 │           └── js/        # JavaScript files
-│               └── main.js
+│               ├── main.js          # Upload/download logic
+│               └── canvas-editor.js # Canvas retouch tool
 ├── templates/             # Project-level HTML templates
 │   └── processor/
 │       └── home.html
@@ -127,6 +161,20 @@ remove-bg/
 ### Running Tests
 ```bash
 python manage.py test
+```
+
+### Code Quality
+
+**Check linting and formatting (what CI runs):**
+```bash
+uv run ruff check .
+uv run ruff format --check .
+```
+
+**Auto-fix issues:**
+```bash
+uv run ruff check --fix .    # Fix linting issues
+uv run ruff format .          # Auto-format code
 ```
 
 ### Code Style
@@ -153,22 +201,29 @@ See `.github/workflows/deploy.yml` for the complete CI/CD configuration.
 
 ## Roadmap
 
-**Phase 1-5: Complete ✅**
+**Phase 1-6: Complete ✅**
 - [x] Basic upload and processing
 - [x] Download and copy functionality
 - [x] Loading indicators
 - [x] Docker support with multi-stage builds
 - [x] CI/CD pipeline via GitHub Actions
 - [x] Production deployment on Google Cloud Run
+- [x] **Canvas retouch tool with brush editor**
+- [x] **Erase/Restore modes with configurable hardness**
+- [x] **20-level undo/redo history**
+- [x] **Keyboard shortcuts for professional workflow**
+- [x] **Touch support for mobile/tablet devices**
 
-**Phase 6-8: Planned**
-- [ ] Canvas-based retouch tool (eraser/restore)
-- [ ] Drag-and-drop upload
-- [ ] Batch processing (multiple images)
+**Phase 7-9: Planned**
 - [ ] File validation and error handling
-- [ ] Rate limiting
+- [ ] Drag-and-drop upload
+- [ ] Brush cursor preview
+- [ ] Variable opacity slider (10-100%)
+- [ ] Zoom/pan for precise canvas editing
 - [ ] Background task queue with Celery + Redis
+- [ ] Batch processing (multiple images)
 - [ ] Infrastructure as Code with Terraform
+- [ ] Rate limiting
 
 ## License
 
