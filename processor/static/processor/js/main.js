@@ -5,6 +5,7 @@ const outputImage = document.getElementById('output-image');
 const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
 const imageInput = document.getElementById('image-input');
+const dropZone = document.getElementById('drop-zone');
 
 let originalImageUrl = null;
 
@@ -39,38 +40,21 @@ function showError(message) {
     alert(message);
 }
 
-imageInput.addEventListener('change', () => {
-    result.style.display = 'none';
-    outputImage.src = '';
-
-    const file = imageInput.files[0];
-    if (file) {
-        const validation = validateFile(file);
-        if (!validation.valid) {
-            showError(validation.error);
-            imageInput.value = '';
-            return;
-        }
-
-        originalImageUrl = URL.createObjectURL(file);
-    }
-});
-
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const file = imageInput.files[0];
-
+async function uploadFile(file) {
     const validation = validateFile(file);
     if (!validation.valid) {
         showError(validation.error);
         return;
     }
 
+    dropZone.style.display = 'none';
     loading.style.display = 'block';
     result.style.display = 'none';
 
-    const formData = new FormData(form);
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('csrfmiddlewaretoken',
+        document.querySelector('[name=csrfmiddlewaretoken]').value);
 
     try {
         const response = await fetch('', {
@@ -125,4 +109,82 @@ form.addEventListener('submit', async (e) => {
         showError('Network error. Please check your connection and try again.');
         loading.style.display = 'none';
     }
+}
+
+imageInput.addEventListener('change', async () => {
+    result.style.display = 'none';
+    outputImage.src = '';
+
+    const file = imageInput.files[0];
+    if (file) {
+        originalImageUrl = URL.createObjectURL(file);
+        await uploadFile(file);
+    }
+});
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const file = imageInput.files[0];
+    if (file) {
+        originalImageUrl = URL.createObjectURL(file);
+    }
+
+    await uploadFile(file);
+});
+
+dropZone.addEventListener('click', () => {
+    imageInput.click();
+});
+
+dropZone.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        originalImageUrl = URL.createObjectURL(file);
+        await uploadFile(file);
+    }
+});
+
+document.addEventListener('paste', async (e) => {
+    const items = e.clipboardData.items;
+
+    for (let item of items) {
+        if (item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            if (file) {
+                originalImageUrl = URL.createObjectURL(file);
+                await uploadFile(file);
+                break;
+            }
+        }
+    }
+});
+
+const uploadAnotherBtn = document.getElementById('upload-another-btn');
+uploadAnotherBtn.addEventListener('click', () => {
+    result.style.display = 'none';
+
+    dropZone.style.display = 'flex';
+
+    imageInput.value = '';
+
+    outputImage.src = '';
+
+    originalImageUrl = null;
 });

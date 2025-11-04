@@ -10,15 +10,20 @@
 </head>
 <body>
     <h1>Background Remover</h1>
-    <p>Upload an image to remove its background.</p>
+    <p>Upload an image remove its background in 1 click.</p>
 
-    <form id="upload-form" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="image" id="image-input" accept="image/*" required>
-        <button type="submit" id="submit-btn">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Remove Background
-        </button>
-    </form>
+    <div tabindex="0" id="drop-zone" class="drop-zone">
+        <i class="fa-solid fa-cloud-arrow-up fa-3x"></i>
+
+        <h2>Drop, Click, or Paste an Image</h2>
+        <p>Supports JPG, PNG, WebP • Up to 10MB</p>
+        <small>Press Ctrl+V to paste</small>
+
+        <form id="upload-form" method="POST" enctype="multipart/form-data" style="display: none">
+            {% csrf_token %}
+            <input type="file" name="image" id="image-input" accept="image/*" required>
+        </form>
+    </div>
 
     <div id="loading" style="display: none;">
         <p>Processing... This may take a few seconds.</p>
@@ -36,6 +41,9 @@
             </button>
             <button id="copy-btn">
                 <i class="fa-solid fa-copy"></i> Copy Image
+            </button>
+            <button id="upload-another-btn">
+                <i class="fa-solid fa-upload"></i> Upload Another
             </button>
         </div>
     </div>

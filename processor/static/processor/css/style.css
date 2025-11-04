@@ -9,6 +9,92 @@ h1 {
     color: #333;
 }
 
+.drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 40px 40px;
+    margin-top: 30px;
+    border: 3px dashed #d8b4fe;
+    border-radius: 12px;
+    background-color: #faf5ff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.drop-zone:hover {
+    border-color: #c084fc;
+    background-color: #f3e8ff;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+    transform: translateY(-2px);
+}
+
+.drop-zone:focus {
+    outline: 3px solid #a855f7;
+    outline-offset: 4px;
+}
+
+.drop-zone.drag-over {
+    border-color: #a855f7;
+    border-style: solid;
+    background-color: #f3e8ff;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3);
+}
+
+.drop-zone i {
+    color: #a855f7;
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.drop-zone.drag-over i {
+    color: #a855f7;
+    opacity: 1;
+}
+
+.drop-zone p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.drop-zone p:first-of-type {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 10px;
+}
+
+.drop-zone p:nth-of-type(2) {
+    margin-bottom: 8px;
+}
+
+.drop-zone small {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+@media (max-width: 600px) {
+    .drop-zone {
+        min-height: 280px;
+        padding: 40px 20px;
+    }
+
+    .drop-zone i {
+        font-size: 2.5em !important;
+    }
+
+    .drop-zone p:first-of-type {
+        font-size: 18px;
+    }
+}
+
 form {
     margin-top: 20px;
 }
@@ -78,7 +164,7 @@ button:hover {
 }
 
 #download-btn {
-    background-color: #28a745;
+    background-color: #f43f5e;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -88,11 +174,11 @@ button:hover {
 }
 
 #download-btn:hover {
-    background-color: #218838;
+    background-color: #e11d48;
 }
 
 #copy-btn {
-    background-color: #17a2b8;
+    background-color: #a855f7;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -102,11 +188,25 @@ button:hover {
 }
 
 #copy-btn:hover {
-    background-color: #138496;
+    background-color: #9333ea;
 }
 
 #copy-btn.copied {
     background-color: #6c757d;
+}
+
+#upload-another-btn {
+    background-color: #a855f7;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#upload-another-btn:hover {
+    background-color: #9333ea;
 }
 
 #canvas-editor {
@@ -154,14 +254,14 @@ button:hover {
 }
 
 .mode-btn:hover {
-    border-color: #007bff;
-    background-color: #f0f8ff;
+    border-color: #a855f7;
+    background-color: #faf5ff;
 }
 
 .mode-btn.active {
-    background-color: #007bff;
+    background-color: #a855f7;
     color: white;
-    border-color: #007bff;
+    border-color: #a855f7;
 }
 
 .mode-btn i {
@@ -203,23 +303,23 @@ button:hover {
 }
 
 #done-btn {
-    background-color: #28a745;
+    background-color: #f43f5e;
     color: white;
 }
 
 #done-btn:hover {
-    background-color: #218838;
+    background-color: #e11d48;
 }
 
 #undo-btn,
 #redo-btn {
-    background-color: #007bff;
+    background-color: #a855f7;
     color: white;
 }
 
 #undo-btn:hover:not(:disabled),
 #redo-btn:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: #9333ea;
 }
 
 #undo-btn:disabled,
@@ -248,10 +348,10 @@ button:hover {
 }
 
 #retouch-btn {
-    background-color: #fd7e14;
+    background-color: #a855f7;
     color: white;
 }
 
 #retouch-btn:hover {
-    background-color: #e76b00;
+    background-color: #9333ea;
 }
