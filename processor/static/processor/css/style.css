@@ -355,3 +355,74 @@ button:hover {
 #retouch-btn:hover {
     background-color: #9333ea;
 }
+
+#editor-canvas {
+    cursor: none;
+}
+
+#brush-cursor {
+    position: fixed;
+    border-radius: 50%;
+    border: 2px solid;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+    transition: border-color 0.2s;
+}
+
+#brush-cursor.erase-mode {
+    border-color: #f43f5e;
+}
+
+#brush-cursor.restore-mode {
+    border-color: #3b82f6;
+}
+
+#brush-opacity {
+    width: 100%;
+    cursor: pointer;
+}
+
+.zoom-controls label {
+    margin-bottom: 8px;
+}
+
+#zoom-value {
+    font-weight: 600;
+    color: #a855f7;
+}
+
+.zoom-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.zoom-btn {
+    flex: 1;
+    padding: 10px;
+    background-color: #a855f7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-btn:hover {
+    background-color: #9333ea;
+}
+
+.zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.canvas-container {
+    overflow: auto;
+    max-width: 100%;
+    max-height: 600px;
+    position: relative;
+}

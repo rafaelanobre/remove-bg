@@ -74,6 +74,26 @@
                 <input type="range" id="brush-hardness" min="0" max="100" value="100">
             </div>
 
+            <div class="control-group">
+                <label for="brush-opacity">Brush Opacity: <span id="brush-opacity-value">100</span>%</label>
+                <input type="range" id="brush-opacity" min="10" max="100" value="100">
+            </div>
+
+            <div class="control-group zoom-controls">
+                <label>Zoom: <span id="zoom-value">100%</span></label>
+                <div class="zoom-buttons">
+                    <button id="zoom-out-btn" class="zoom-btn">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <button id="zoom-in-btn" class="zoom-btn">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <button id="reset-view-btn" class="zoom-btn">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+
             <div class="control-group action-buttons">
                 <button id="undo-btn" class="action-btn" disabled>
                     <i class="fa-solid fa-rotate-left"></i> Undo
@@ -95,6 +115,8 @@
         </div>
         <canvas id="backup-canvas" style="display: none;"></canvas>
     </div>
+
+    <div id="brush-cursor"></div>
 
     <script>
         window.UPLOAD_CONFIG = {{ upload_config|safe }};
