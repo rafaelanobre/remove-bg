@@ -20,6 +20,7 @@ Upload an image → AI removes background → Download or copy the result!
 
 ### Core Features
 - **AI-Powered** - Uses a neural network for accurate background removal with rembg
+- **Three Upload Methods** - Click, Drag & Drop, or Paste (Ctrl+V) for flexible workflow
 - **Instant Preview** - See results immediately with transparent background indicator
 - **Download & Copy** - Save as PNG or copy directly to clipboard
 - **Runs anywhere** - CPU-based processing, no GPU required
@@ -28,7 +29,9 @@ Upload an image → AI removes background → Download or copy the result!
 ### Canvas Retouch Editor
 - **Professional Brush Tool** - Fine-tune AI results with precision editing
 - **Dual Modes** - Erase unwanted pixels or restore original background
-- **Configurable Brush** - Adjustable size (5-100px) and hardness (0-100%)
+- **Configurable Brush** - Adjustable size (5-100px), hardness (0-100%), and opacity (10-100%)
+- **Visual Cursor Preview** - See exact brush size and mode in real-time
+- **Zoom & Pan Controls** - Precision editing with up to 400% zoom
 - **Undo/Redo** - 20-level history for mistake-free editing
 - **Keyboard Shortcuts** - Professional workflow with hotkeys
 - **Touch Support** - Works on tablets and touch-enabled devices
@@ -92,11 +95,17 @@ Upload an image → AI removes background → Download or copy the result!
 ## Usage
 
 ### Basic Workflow
-1. Click "Choose File" and select an image (JPG, PNG, etc.)
-2. Click "Remove Background" with the magic wand icon
-3. Wait a few seconds while the AI processes your image
-4. View the result with transparent background
-5. Click "Download" to save as PNG or "Copy Image" to copy to clipboard
+
+**Three Ways to Upload:**
+1. **Click**: Click the drop zone to open file dialog and select an image
+2. **Drag & Drop**: Drag an image file onto the purple drop zone
+3. **Paste**: Copy an image (Ctrl+C) and paste anywhere (Ctrl+V)
+
+**Processing:**
+1. Upload triggers automatic background removal with AI
+2. Wait a few seconds while the AI processes your image
+3. View the result with transparent background (checkered pattern)
+4. Click "Download" to save as PNG or "Copy Image" to copy to clipboard
 
 **First-time use:** The AI model (~170MB) will be downloaded automatically on first run.
 
@@ -104,11 +113,12 @@ Upload an image → AI removes background → Download or copy the result!
 After background removal, click **"Retouch"** to fine-tune the result:
 
 1. **Choose Mode**: Select "Erase" to remove pixels or "Restore" to bring back original background
-2. **Adjust Brush**: Use sliders to change brush size (5-100px) and hardness (0-100%)
-3. **Paint**: Click and drag on the canvas to edit
-4. **Undo/Redo**: Use buttons or keyboard shortcuts (Ctrl+Z / Ctrl+Shift+Z)
-5. **Reset**: Reload original AI result if needed
-6. **Done**: Save your edits and return to download
+2. **Adjust Brush**: Use sliders to change brush size (5-100px), hardness (0-100%), and opacity (10-100%)
+3. **Zoom & Pan**: Mouse wheel to zoom (up to 400%), Space+drag to pan around the canvas
+4. **Paint**: Click and drag on the canvas to edit (brush cursor shows size and mode)
+5. **Undo/Redo**: Use buttons or keyboard shortcuts (Ctrl+Z / Ctrl+Shift+Z)
+6. **Reset**: Reload original AI result if needed
+7. **Done**: Save your edits and return to download
 
 ### Keyboard Shortcuts
 
@@ -120,8 +130,12 @@ After background removal, click **"Retouch"** to fine-tune the result:
 | `]` | Increase brush size (+5px) |
 | `Shift + [` | Decrease hardness (-10%) |
 | `Shift + ]` | Increase hardness (+10%) |
+| `0-9` | Set opacity (10%-90%) |
+| `Shift + 0` | Set opacity to 100% |
 | `Ctrl + Z` | Undo last stroke |
 | `Ctrl + Shift + Z` | Redo stroke |
+| `Mouse Wheel` | Zoom in/out |
+| `Space + Drag` | Pan canvas |
 
 ## Project Structure
 
@@ -201,7 +215,7 @@ See `.github/workflows/deploy.yml` for the complete CI/CD configuration.
 
 ## Roadmap
 
-**Phase 1-6: Complete ✅**
+**Phase 1-7: Complete ✅**
 - [x] Basic upload and processing
 - [x] Download and copy functionality
 - [x] Loading indicators
@@ -213,13 +227,13 @@ See `.github/workflows/deploy.yml` for the complete CI/CD configuration.
 - [x] **20-level undo/redo history**
 - [x] **Keyboard shortcuts for professional workflow**
 - [x] **Touch support for mobile/tablet devices**
+- [x] **File validation and error handling**
+- [x] **Three upload methods: Click, Drag & Drop, Paste (Ctrl+V)**
+- [x] **Brush cursor preview with mode-based color coding**
+- [x] **Variable opacity slider (10-100%)**
+- [x] **Zoom/pan controls for precision editing (up to 400% zoom)**
 
-**Phase 7-9: Planned**
-- [ ] File validation and error handling
-- [ ] Drag-and-drop upload
-- [ ] Brush cursor preview
-- [ ] Variable opacity slider (10-100%)
-- [ ] Zoom/pan for precise canvas editing
+**Phase 8-9: Planned**
 - [ ] Background task queue with Celery + Redis
 - [ ] Batch processing (multiple images)
 - [ ] Infrastructure as Code with Terraform
