@@ -43,13 +43,15 @@ form.addEventListener('submit', async (e) => {
 
             downloadBtn.onclick = () => {
                 const a = document.createElement('a');
-                a.href = imageUrl;
+                a.href = outputImage.src;
                 a.download = 'background-removed.png';
                 a.click();
             };
 
             copyBtn.onclick = async () => {
                 try {
+                    const response = await fetch(outputImage.src);
+                    const blob = await response.blob();
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
 
