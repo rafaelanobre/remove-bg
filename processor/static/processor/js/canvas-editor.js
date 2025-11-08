@@ -9,6 +9,7 @@ class CanvasEditor {
 
         this.brushSize = 20;
         this.brushHardness = 100;
+        this.brushOpacity = 100;
         this.brushMode = 'erase';
         this.isDrawing = false;
         this.lastX = 0;
@@ -17,6 +18,15 @@ class CanvasEditor {
         this.historyStack = [];
         this.historyIndex = -1;
         this.maxHistoryStates = 20;
+
+        this.brushCursor = document.getElementById('brush-cursor');
+
+        this.zoom = 1;
+        this.panX = 0;
+        this.panY = 0;
+        this.isPanning = false;
+        this.panStartX = 0;
+        this.panStartY = 0;
 
         this.initializeCanvases();
         this.attachEventListeners();
@@ -160,15 +170,25 @@ class CanvasEditor {
         const brushSizeValue = document.getElementById('brush-size-value');
         const brushHardnessSlider = document.getElementById('brush-hardness');
         const brushHardnessValue = document.getElementById('brush-hardness-value');
+        const brushOpacitySlider = document.getElementById('brush-opacity');
+        const brushOpacityValue = document.getElementById('brush-opacity-value');
 
         brushSizeSlider.addEventListener('input', (e) => {
             this.brushSize = parseInt(e.target.value);
             brushSizeValue.textContent = this.brushSize;
+            this.updateCursor();
         });
 
         brushHardnessSlider.addEventListener('input', (e) => {
             this.brushHardness = parseInt(e.target.value);
             brushHardnessValue.textContent = this.brushHardness;
+            this.updateCursor();
+        });
+
+        brushOpacitySlider.addEventListener('input', (e) => {
+            this.brushOpacity = parseInt(e.target.value);
+            brushOpacityValue.textContent = this.brushOpacity;
+            this.updateCursor();
         });
 
         const eraseModeBtn = document.getElementById('erase-mode-btn');
@@ -184,6 +204,22 @@ class CanvasEditor {
         redoBtn.addEventListener('click', () => this.redo());
         resetBtn.addEventListener('click', () => this.resetCanvas());
         doneBtn.addEventListener('click', () => this.closeEditor());
+
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        const resetViewBtn = document.getElementById('reset-view-btn');
+
+        zoomInBtn.addEventListener('click', () => this.zoomIn());
+        zoomOutBtn.addEventListener('click', () => this.zoomOut());
+        resetViewBtn.addEventListener('click', () => this.resetView());
+
+        document.addEventListener('mousemove', (e) => this.updateCursorPosition(e));
+        this.editorCanvas.addEventListener('mouseenter', () => this.showCursor());
+        this.editorCanvas.addEventListener('mouseleave', () => this.hideCursor());
+
+        this.editorCanvas.addEventListener('wheel', (e) => this.handleZoom(e), { passive: false });
+
+        document.addEventListener('keydown', (e) => this.handleOpacityShortcuts(e));
     }
 
     setMode(mode) {
@@ -199,6 +235,8 @@ class CanvasEditor {
             restoreModeBtn.classList.add('active');
             eraseModeBtn.classList.remove('active');
         }
+
+        this.updateCursor();
     }
 
     startDrawing(e) {
@@ -255,9 +293,12 @@ class CanvasEditor {
         const canvasX = x * scaleX;
         const canvasY = y * scaleY;
         const radius = this.brushSize;
+        const opacity = this.brushOpacity / 100;
 
         if (this.brushMode === 'erase') {
+            this.editorCtx.save();
             this.editorCtx.globalCompositeOperation = 'destination-out';
+            this.editorCtx.globalAlpha = opacity;
 
             if (this.brushHardness === 100) {
                 this.editorCtx.fillStyle = 'rgba(0, 0, 0, 1)';
@@ -278,7 +319,7 @@ class CanvasEditor {
                 this.editorCtx.fill();
             }
 
-            this.editorCtx.globalCompositeOperation = 'source-over';
+            this.editorCtx.restore();
         } else if (this.brushMode === 'restore') {
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = this.editorCanvas.width;
@@ -307,7 +348,10 @@ class CanvasEditor {
             tempCtx.globalCompositeOperation = 'source-in';
             tempCtx.drawImage(this.backupCanvas, 0, 0);
 
+            this.editorCtx.save();
+            this.editorCtx.globalAlpha = opacity;
             this.editorCtx.drawImage(tempCanvas, 0, 0);
+            this.editorCtx.restore();
         }
     }
 
@@ -408,6 +452,105 @@ class CanvasEditor {
         const brushHardnessValue = document.getElementById('brush-hardness-value');
         brushHardnessSlider.value = newHardness;
         brushHardnessValue.textContent = newHardness;
+    }
+
+    updateCursor() {
+        const size = this.brushSize * 2;
+        this.brushCursor.style.width = `${size}px`;
+        this.brushCursor.style.height = `${size}px`;
+
+        this.brushCursor.className = `${this.brushMode}-mode`;
+
+        const opacity = this.brushOpacity / 100;
+        this.brushCursor.style.opacity = Math.max(0.3, opacity);
+    }
+
+    showCursor() {
+        this.brushCursor.style.display = 'block';
+        this.updateCursor();
+    }
+
+    hideCursor() {
+        this.brushCursor.style.display = 'none';
+    }
+
+    updateCursorPosition(e) {
+        const x = e.clientX;
+        const y = e.clientY;
+
+        this.brushCursor.style.left = `${x - this.brushSize}px`;
+        this.brushCursor.style.top = `${y - this.brushSize}px`;
+    }
+
+    handleOpacityShortcuts(e) {
+        const canvasEditor = document.getElementById('canvas-editor');
+        if (canvasEditor.style.display === 'none') return;
+
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+            if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
+                const opacity = e.key === '0' ? 100 : parseInt(e.key) * 10;
+                this.brushOpacity = opacity;
+                const brushOpacitySlider = document.getElementById('brush-opacity');
+                const brushOpacityValue = document.getElementById('brush-opacity-value');
+                brushOpacitySlider.value = opacity;
+                brushOpacityValue.textContent = opacity;
+                this.updateCursor();
+            }
+        }
+    }
+
+    handleZoom(e) {
+        if (!e.ctrlKey && !e.metaKey) return;
+
+        e.preventDefault();
+
+        const delta = -e.deltaY;
+        const zoomFactor = delta > 0 ? 1.1 : 0.9;
+
+        const newZoom = Math.max(0.25, Math.min(4, this.zoom * zoomFactor));
+
+        if (newZoom !== this.zoom) {
+            this.zoom = newZoom;
+            this.applyZoom();
+        }
+    }
+
+    applyZoom() {
+        const canvas = this.editorCanvas;
+        const container = canvas.parentElement;
+
+        canvas.style.transform = `scale(${this.zoom})`;
+        canvas.style.transformOrigin = 'top left';
+
+        container.style.width = `${canvas.width * this.zoom}px`;
+        container.style.height = `${canvas.height * this.zoom}px`;
+
+        const zoomValue = document.getElementById('zoom-value');
+        zoomValue.textContent = `${Math.round(this.zoom * 100)}%`;
+    }
+
+    zoomIn() {
+        const newZoom = Math.min(4, this.zoom * 1.2);
+        if (newZoom !== this.zoom) {
+            this.zoom = newZoom;
+            this.applyZoom();
+        }
+    }
+
+    zoomOut() {
+        const newZoom = Math.max(0.25, this.zoom / 1.2);
+        if (newZoom !== this.zoom) {
+            this.zoom = newZoom;
+            this.applyZoom();
+        }
+    }
+
+    resetView() {
+        this.zoom = 1;
+        this.panX = 0;
+        this.panY = 0;
+        this.applyZoom();
     }
 
     closeEditor() {

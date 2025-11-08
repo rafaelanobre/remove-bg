@@ -146,6 +146,11 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# File Upload Validation Settings
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB in bytes
+ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
+ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
 # Celery Configuration
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/1')
