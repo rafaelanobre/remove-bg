@@ -16,6 +16,30 @@ def health_check(request):
     return JsonResponse({'status': 'OK'})
 
 
+def get_task_status(request, task_id):
+    """
+    API endpoint to check the status of a background processing task.
+
+    Returns JSON with current task status, result URL (if completed), and error (if failed).
+    """
+    try:
+        task = ProcessingTask.objects.get(task_id=task_id)
+
+        response_data = {
+            'status': task.status,
+            'result_url': task.result_url,
+            'error': task.error_message,
+        }
+
+        return JsonResponse(response_data)
+
+    except ProcessingTask.DoesNotExist:
+        return JsonResponse(
+            {'error': 'Task not found'},
+            status=404
+        )
+
+
 def validate_image_file(uploaded_file):
     """
     Validate uploaded image file for security and compatibility.
