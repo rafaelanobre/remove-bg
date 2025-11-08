@@ -59,7 +59,7 @@ def process_image_task(self, image_data_b64: str, task_id: str) -> dict:
         }
 
     except Exception as exc:
-        error_msg = f"{type(exc).__name__}: {str(exc)}\n{traceback.format_exc()}"
+        error_msg = f"{type(exc).__name__}: {exc!s}\n{traceback.format_exc()}"
 
         if task_record:
             task_record.mark_failed(error_msg)

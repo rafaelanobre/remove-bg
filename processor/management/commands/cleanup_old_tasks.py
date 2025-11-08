@@ -58,7 +58,7 @@ class Command(BaseCommand):
             if task.result_url:
                 file_path = os.path.join(
                     settings.MEDIA_ROOT,
-                    task.result_url.replace(settings.MEDIA_URL, '', 1)
+                    task.result_url.replace(settings.MEDIA_URL, '', 1),
                 )
 
                 if os.path.exists(file_path):
@@ -82,7 +82,5 @@ class Command(BaseCommand):
 
         if files_not_found > 0:
             self.stdout.write(
-                self.style.WARNING(
-                    f'{files_not_found} file(s) were already missing'
-                )
+                self.style.WARNING(f'{files_not_found} file(s) were already missing')
             )

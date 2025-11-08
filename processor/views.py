@@ -34,10 +34,7 @@ def get_task_status(request, task_id):
         return JsonResponse(response_data)
 
     except ProcessingTask.DoesNotExist:
-        return JsonResponse(
-            {'error': 'Task not found'},
-            status=404
-        )
+        return JsonResponse({'error': 'Task not found'}, status=404)
 
 
 def validate_image_file(uploaded_file):
@@ -85,20 +82,11 @@ def home(request):
 
         task_id = str(uuid.uuid4())
 
-        ProcessingTask.objects.create(
-            task_id=task_id,
-            status='pending'
-        )
+        ProcessingTask.objects.create(task_id=task_id, status='pending')
 
-        process_image_task.apply_async(
-            args=(image_data_b64, task_id),
-            task_id=task_id
-        )
+        process_image_task.apply_async(args=(image_data_b64, task_id), task_id=task_id)
 
-        return JsonResponse({
-            'task_id': task_id,
-            'status': 'pending'
-        })
+        return JsonResponse({'task_id': task_id, 'status': 'pending'})
 
     context = {
         'upload_config': json.dumps(
