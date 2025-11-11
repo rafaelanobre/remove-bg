@@ -38,10 +38,7 @@ def process_image_task(self, image_data_b64: str, task_id: str) -> dict:
         output_buffer.seek(0)
 
         filename = f'processed/{task_id}.png'
-        saved_path = default_storage.save(
-            filename,
-            ContentFile(output_buffer.read())
-        )
+        saved_path = default_storage.save(filename, ContentFile(output_buffer.read()))
 
         result_url = default_storage.url(saved_path)
         task_record.mark_completed(result_url)
@@ -52,14 +49,14 @@ def process_image_task(self, image_data_b64: str, task_id: str) -> dict:
         }
 
     except ProcessingTask.DoesNotExist:
-        error_msg = f"ProcessingTask with task_id={task_id} not found"
+        error_msg = f'ProcessingTask with task_id={task_id} not found'
         return {
             'status': 'failed',
             'error': error_msg,
         }
 
     except Exception as exc:
-        error_msg = f"{type(exc).__name__}: {exc!s}\n{traceback.format_exc()}"
+        error_msg = f'{type(exc).__name__}: {exc!s}\n{traceback.format_exc()}'
 
         if task_record:
             task_record.mark_failed(error_msg)

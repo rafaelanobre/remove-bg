@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from django.db import models
 from django.utils import timezone
 
@@ -8,7 +10,7 @@ class ProcessingTask(models.Model):
     Provides persistent state storage beyond Celery's TTL-limited result backend.
     """
 
-    STATUS_CHOICES = [
+    STATUS_CHOICES: ClassVar = [
         ('pending', 'Pending'),
         ('processing', 'Processing'),
         ('completed', 'Completed'),
@@ -16,10 +18,7 @@ class ProcessingTask(models.Model):
     ]
 
     task_id = models.CharField(
-        max_length=255,
-        unique=True,
-        db_index=True,
-        help_text="Celery task UUID"
+        max_length=255, unique=True, db_index=True, help_text='Celery task UUID'
     )
     status = models.CharField(
         max_length=20,
@@ -29,33 +28,29 @@ class ProcessingTask(models.Model):
     )
     result_url = models.CharField(
         max_length=500,
-        null=True,
         blank=True,
-        help_text="URL or path to processed image"
+        default='',
+        help_text='URL or path to processed image',
     )
     error_message = models.TextField(
-        null=True,
-        blank=True,
-        help_text="Exception traceback if task failed"
+        blank=True, default='', help_text='Exception traceback if task failed'
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,
     )
     completed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When task finished (success or failure)"
+        null=True, blank=True, help_text='When task finished (success or failure)'
     )
 
     class Meta:
-        ordering = ['-created_at']
-        indexes = [
+        ordering: ClassVar = ['-created_at']
+        indexes: ClassVar = [
             models.Index(fields=['status', 'created_at']),
         ]
 
     def __str__(self):
-        return f"Task {self.task_id[:8]} - {self.status}"
+        return f'Task {self.task_id[:8]} - {self.status}'
 
     def mark_processing(self):
         self.status = 'processing'
