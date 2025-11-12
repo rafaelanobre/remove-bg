@@ -161,6 +161,13 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 
+# SSL/TLS configuration for Upstash Redis (only when using rediss://)
+if CELERY_BROKER_URL.startswith('rediss://'):
+    CELERY_BROKER_USE_SSL = {
+        'ssl_cert_reqs': None  # Upstash uses valid certificates, no custom CA needed
+    }
+    CELERY_REDIS_BACKEND_USE_SSL = {'ssl_cert_reqs': None}
+
 # Media files for processed images
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

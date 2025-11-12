@@ -1,4 +1,5 @@
 import os
+import ssl
 
 from celery import Celery
 
@@ -6,6 +7,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'remove_bg.settings')
 
 app = Celery('remove_bg')
 app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# SSL/TLS configuration for Upstash Redis with certificate verification
+broker_use_ssl = {
+    'ssl_cert_reqs': ssl.CERT_REQUIRED,  # Verify server certificate for security
+}
 
 app.conf.update(
     task_serializer='json',
@@ -19,6 +25,8 @@ app.conf.update(
     task_reject_on_worker_lost=True,
     timezone='UTC',
     enable_utc=True,
+    broker_use_ssl=broker_use_ssl,
+    redis_backend_use_ssl=broker_use_ssl,
 )
 
 app.autodiscover_tasks()
