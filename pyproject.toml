@@ -25,5 +25,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "celery[pytest]>=5.5.3",
+    "pytest>=9.0.1",
+    "pytest-django>=4.11.1",
     "ruff>=0.14.1",
 ]
