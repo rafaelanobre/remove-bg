@@ -1,5 +1,5 @@
 steps:
-  # Build the container image using docker with BuildKit
+  # Build the web app container image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -11,9 +11,25 @@ steps:
     env:
       - 'DOCKER_BUILDKIT=1'
 
+  # Build the Celery worker container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.worker'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/worker:latest'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/worker:$BUILD_ID'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/app:latest'
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/app:$BUILD_ID'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/worker:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/remove-bg/worker:$BUILD_ID'
 
 options:
   logging: CLOUD_LOGGING_ONLY

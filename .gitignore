@@ -91,6 +91,11 @@ profiler.stats
 staticfiles/
 /staticfiles/
 
+# ---- Django media files ----
+# User-uploaded and processed files
+media/
+/media/
+
 # ---- Database ----
 # SQLite database (if using SQLite for development)
 *.sqlite3

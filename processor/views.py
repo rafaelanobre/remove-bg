@@ -1,18 +1,40 @@
+import base64
 import json
 import os
-from io import BytesIO
+import uuid
 
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from PIL import Image, UnidentifiedImageError
-from rembg import new_session, remove
 
-_rembg_session = new_session()
+from processor.models import ProcessingTask
+from processor.tasks import process_image_task
 
 
 def health_check(request):
     return JsonResponse({'status': 'OK'})
+
+
+def get_task_status(request, task_id):
+    """
+    API endpoint to check the status of a background processing task.
+
+    Returns JSON with current task status, result URL (if completed), and error (if failed).
+    """
+    try:
+        task = ProcessingTask.objects.get(task_id=task_id)
+
+        response_data = {
+            'status': task.status,
+            'result_url': task.result_url,
+            'error': task.error_message,
+        }
+
+        return JsonResponse(response_data)
+
+    except ProcessingTask.DoesNotExist:
+        return JsonResponse({'error': 'Task not found'}, status=404)
 
 
 def validate_image_file(uploaded_file):
@@ -55,23 +77,16 @@ def home(request):
         if not is_valid:
             return JsonResponse({'error': error_message}, status=400)
 
-        try:
-            input_image = Image.open(uploaded_file)
-            output_image = remove(input_image, session=_rembg_session)
+        image_bytes = uploaded_file.read()
+        image_data_b64 = base64.b64encode(image_bytes).decode('utf-8')
 
-            img_io = BytesIO()
-            output_image.save(img_io, format='PNG')
-            img_io.seek(0)
+        task_id = str(uuid.uuid4())
 
-            return HttpResponse(img_io, content_type='image/png')
+        ProcessingTask.objects.create(task_id=task_id, status='pending')
 
-        except Exception:
-            return JsonResponse(
-                {
-                    'error': 'Failed to process image. Please try again or use a different image'
-                },
-                status=500,
-            )
+        process_image_task.apply_async(args=(image_data_b64, task_id), task_id=task_id)
+
+        return JsonResponse({'task_id': task_id, 'status': 'pending'})
 
     context = {
         'upload_config': json.dumps(

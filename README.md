@@ -43,11 +43,18 @@ Upload an image → AI removes background → Download or copy the result!
 - Python 3.12+
 - rembg (AI background removal)
 - Pillow (image processing)
+- Celery 5.5+ (async task queue)
+- Redis (message broker via Upstash)
 
 **Frontend:**
 - Vanilla JavaScript (ES6+)
 - HTML5 & CSS3
 - Font Awesome icons
+
+**Infrastructure:**
+- Google Cloud Run (serverless containers)
+- Upstash Redis (managed Redis with TLS)
+- GitHub Actions (CI/CD)
 
 **Package Management:**
 - uv (modern Python package manager)
@@ -233,11 +240,20 @@ See `.github/workflows/deploy.yml` for the complete CI/CD configuration.
 - [x] **Variable opacity slider (10-100%)**
 - [x] **Zoom/pan controls for precision editing (up to 400% zoom)**
 
-**Phase 8-9: Planned**
-- [ ] Background task queue with Celery + Redis
+**Phase 8: Background Task Queue (In Progress)**
+- [x] **Async task processing with Celery + Upstash Redis**
+- [x] **Instant API responses (~50ms instead of 3-5s)**
+- [x] **Separate Celery worker service on Cloud Run**
+- [x] **TLS-secured Redis connection with certificate verification**
+- [x] **Frontend polling for task status updates**
+- [x] **Automatic cleanup of old tasks and results**
+- [ ] Error monitoring and alerting (Pending)
+
+**Phase 9: Planned**
 - [ ] Batch processing (multiple images)
 - [ ] Infrastructure as Code with Terraform
 - [ ] Rate limiting
+- [ ] Performance monitoring dashboard
 
 ## License
 

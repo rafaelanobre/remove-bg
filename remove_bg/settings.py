@@ -150,3 +150,67 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB in bytes
 ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
 ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+# Celery Configuration
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config(
+    'CELERY_RESULT_BACKEND', default='redis://localhost:6379/1'
+)
+CELERY_RESULT_EXPIRES = 3600  # Results expire after 1 hour (in seconds)
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+
+# SSL/TLS configuration for Upstash Redis (only when using rediss://)
+if CELERY_BROKER_URL.startswith('rediss://'):
+    CELERY_BROKER_USE_SSL = {
+        'ssl_cert_reqs': None  # Upstash uses valid certificates, no custom CA needed
+    }
+    CELERY_REDIS_BACKEND_USE_SSL = {'ssl_cert_reqs': None}
+
+# Media files for processed images
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '%(asctime)s %(name)s %(levelname)s %(message)s',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json' if not DEBUG else 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'processor.tasks': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

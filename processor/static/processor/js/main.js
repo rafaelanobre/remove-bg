@@ -40,6 +40,47 @@ function showError(message) {
     alert(message);
 }
 
+async function pollTaskStatus(taskId) {
+    const MAX_ATTEMPTS = 60;
+    const POLL_INTERVAL = 2000;
+    let attempts = 0;
+
+    return new Promise((resolve, reject) => {
+        const pollInterval = setInterval(async () => {
+            attempts++;
+
+            if (attempts > MAX_ATTEMPTS) {
+                clearInterval(pollInterval);
+                reject(new Error('Processing timeout. Please try again.'));
+                return;
+            }
+
+            try {
+                const response = await fetch(`/task/${taskId}/status/`);
+
+                if (!response.ok) {
+                    clearInterval(pollInterval);
+                    reject(new Error('Failed to check task status'));
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'completed') {
+                    clearInterval(pollInterval);
+                    resolve(data.result_url);
+                } else if (data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    reject(new Error(data.error || 'Processing failed'));
+                }
+            } catch (error) {
+                clearInterval(pollInterval);
+                reject(error);
+            }
+        }, POLL_INTERVAL);
+    });
+}
+
 async function uploadFile(file) {
     const validation = validateFile(file);
     if (!validation.valid) {
@@ -57,59 +98,62 @@ async function uploadFile(file) {
         document.querySelector('[name=csrfmiddlewaretoken]').value);
 
     try {
-        const response = await fetch('', {
+        const uploadResponse = await fetch('', {
             method: 'POST',
             body: formData
         });
 
-        if (response.ok) {
-            const blob = await response.blob();
-            const imageUrl = URL.createObjectURL(blob);
-
-            outputImage.src = imageUrl;
-            outputImage.dataset.originalSrc = originalImageUrl;
+        if (!uploadResponse.ok) {
+            const errorData = await uploadResponse.json();
+            showError(errorData.error || 'Error uploading image. Please try again.');
             loading.style.display = 'none';
-            result.style.display = 'block';
-
-            downloadBtn.onclick = () => {
-                const a = document.createElement('a');
-                a.href = outputImage.src;
-                a.download = 'background-removed.png';
-                a.click();
-            };
-
-            copyBtn.onclick = async () => {
-                try {
-                    const response = await fetch(outputImage.src);
-                    const blob = await response.blob();
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-
-                    copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-                    copyBtn.classList.add('copied');
-
-                    setTimeout(() => {
-                        copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy Image';
-                        copyBtn.classList.remove('copied');
-                    }, 2000);
-                } catch (error) {
-                    console.error('Copy failed:', error);
-                    alert('Failed to copy image. Please try download instead.');
-                }
-            };
-        } else {
-            try {
-                const errorData = await response.json();
-                showError(errorData.error || 'Error processing image. Please try again.');
-            } catch {
-                showError('Error processing image. Please try again.');
-            }
-            loading.style.display = 'none';
+            return;
         }
+
+        const { task_id } = await uploadResponse.json();
+
+        const resultUrl = await pollTaskStatus(task_id);
+
+        const imageResponse = await fetch(resultUrl);
+        const blob = await imageResponse.blob();
+        const imageUrl = URL.createObjectURL(blob);
+
+        outputImage.src = imageUrl;
+        outputImage.dataset.originalSrc = originalImageUrl;
+        loading.style.display = 'none';
+        result.style.display = 'block';
+
+        downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = outputImage.src;
+            a.download = 'background-removed.png';
+            a.click();
+        };
+
+        copyBtn.onclick = async () => {
+            try {
+                const response = await fetch(outputImage.src);
+                const blob = await response.blob();
+                const item = new ClipboardItem({ 'image/png': blob });
+                await navigator.clipboard.write([item]);
+
+                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                copyBtn.classList.add('copied');
+
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy Image';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (error) {
+                console.error('Copy failed:', error);
+                alert('Failed to copy image. Please try download instead.');
+            }
+        };
     } catch (error) {
         console.error('Error:', error);
-        showError('Network error. Please check your connection and try again.');
+        showError(error.message || 'Network error. Please check your connection and try again.');
         loading.style.display = 'none';
+        dropZone.style.display = 'flex';
     }
 }
 
