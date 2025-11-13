@@ -1,6 +1,6 @@
 import base64
+import contextlib
 import io
-from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 from PIL import Image
@@ -44,10 +44,10 @@ class CeleryTaskTests(TestCase):
         task_id = 'test-task-corrupted'
         ProcessingTask.objects.create(task_id=task_id, status='pending')
 
-        try:
-            process_image_task.apply_async(args=('invalid-base64!!!', task_id), task_id=task_id)
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            process_image_task.apply_async(
+                args=('invalid-base64!!!', task_id), task_id=task_id
+            )
 
         task = ProcessingTask.objects.get(task_id=task_id)
         self.assertIn(task.status, ['pending', 'failed'])

@@ -135,7 +135,7 @@ class TaskStatusPollingTests(TestCase):
         max_polls = 30
         poll_interval = 0.1
 
-        for i in range(max_polls):
+        for _ in range(max_polls):
             response = self.client.get(reverse('task_status', args=[task_id]))
             self.assertEqual(response.status_code, 200)
 

@@ -39,7 +39,11 @@ def process_image_task(self, image_data_b64: str, task_id: str) -> dict:
 
         logger.info(
             'Image loaded successfully',
-            extra={**extra, 'image_size': input_image.size, 'image_format': input_image.format}
+            extra={
+                **extra,
+                'image_size': input_image.size,
+                'image_format': input_image.format,
+            },
         )
 
         output_image = remove(input_image, session=_rembg_session)
@@ -54,7 +58,9 @@ def process_image_task(self, image_data_b64: str, task_id: str) -> dict:
         result_url = default_storage.url(saved_path)
         task_record.mark_completed(result_url)
 
-        logger.info('Image processing completed', extra={**extra, 'result_url': result_url})
+        logger.info(
+            'Image processing completed', extra={**extra, 'result_url': result_url}
+        )
 
         return {
             'status': 'completed',
@@ -74,8 +80,12 @@ def process_image_task(self, image_data_b64: str, task_id: str) -> dict:
 
         logger.error(
             'Image processing failed',
-            extra={**extra, 'error_type': type(exc).__name__, 'error_message': str(exc)},
-            exc_info=True
+            extra={
+                **extra,
+                'error_type': type(exc).__name__,
+                'error_message': str(exc),
+            },
+            exc_info=True,
         )
 
         if task_record:
