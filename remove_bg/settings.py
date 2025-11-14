@@ -130,9 +130,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 TESTING = 'test' in sys.argv
 
+# Google Cloud Storage Configuration
+GCS_BUCKET_NAME = config('GCS_BUCKET_NAME', default='')
+
 STORAGES = {
     'default': {
-        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'BACKEND': (
+            'storages.backends.gcloud.GoogleCloudStorage'
+            if GCS_BUCKET_NAME
+            else 'django.core.files.storage.FileSystemStorage'
+        ),
     },
     'staticfiles': {
         'BACKEND': (
@@ -142,6 +149,13 @@ STORAGES = {
         ),
     },
 }
+
+# GCS settings (only used when GCS_BUCKET_NAME is set)
+if GCS_BUCKET_NAME:
+    GS_BUCKET_NAME = GCS_BUCKET_NAME
+    GS_DEFAULT_ACL = None  # Use bucket's default ACL
+    GS_QUERYSTRING_AUTH = False  # Make files publicly accessible
+    GS_FILE_OVERWRITE = False  # Don't overwrite files with same name
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
