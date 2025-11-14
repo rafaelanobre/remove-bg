@@ -104,3 +104,10 @@ db.sqlite3
 # ---- Misc ----
 # Local scripts not meant for commit
 local_*/
+
+# ---- Claude Code internal ----
+.claude/
+CLAUDE.md
+
+# ---- Test files ----
+test_images/

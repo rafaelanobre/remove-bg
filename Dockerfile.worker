@@ -39,9 +39,8 @@ RUN /app/.venv/bin/python -c "from rembg import remove; from PIL import Image; i
     buf.seek(0); \
     remove(buf.read());"
 
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Make wrapper script executable
+RUN chmod +x /app/scripts/celery_healthcheck.py
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD /app/.venv/bin/celery -A remove_bg worker --loglevel=info --concurrency=2
+# Run Celery worker with health check endpoint
+CMD ["/app/.venv/bin/python", "/app/scripts/celery_healthcheck.py"]
