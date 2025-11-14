@@ -40,7 +40,7 @@ RUN /app/.venv/bin/python -c "from rembg import remove; from PIL import Image; i
     remove(buf.read());"
 
 # Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
+COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
