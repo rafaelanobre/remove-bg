@@ -10,9 +10,23 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "8000:8080"
     volumes:
       - ./staticfiles:/app/staticfiles
+      - shared_db:/data
+      - shared_media:/app/media
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    volumes:
+      - shared_db:/data
+      - shared_media:/app/media
     env_file:
       - .env
     depends_on:
@@ -20,3 +34,5 @@ services:
 
 volumes:
   redis_data:
+  shared_db:
+  shared_media:
