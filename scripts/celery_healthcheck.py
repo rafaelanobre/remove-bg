@@ -35,13 +35,20 @@ def run_health_server():
 
 
 def run_celery_worker():
+    import django
+
+    django.setup()  # Ensure Django is fully initialized
+
     from remove_bg.celery import app
 
+    print('Celery worker starting...', flush=True)
     worker = app.Worker(
-        loglevel='info',
+        loglevel='INFO',
         concurrency=2,
         pool='prefork',
+        logfile=None,  # Log to stdout
     )
+    print('Starting Celery worker.start()...', flush=True)
     worker.start()
 
 

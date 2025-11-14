@@ -181,6 +181,7 @@ jobs:
             --no-allow-unauthenticated
           env_vars: |
             DEBUG=False
+            ALLOWED_HOSTS=.run.app
             ORT_DISABLE_ADVANCED_CPU_FEATURES=1
             GCS_BUCKET_NAME=${{ env.GCS_BUCKET_NAME }}
           secrets: |
