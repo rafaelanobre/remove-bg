@@ -37,9 +37,8 @@ def run_health_server():
 def run_celery_worker():
     import django
 
-    # Set Django settings module before calling setup()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'remove_bg.settings')
-    django.setup()  # Ensure Django is fully initialized
+    django.setup()
 
     from remove_bg.celery import app
 
