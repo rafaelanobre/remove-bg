@@ -6,15 +6,8 @@ Built with Django and powered by the rembg library for CPU-based background remo
 ![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![Django](https://img.shields.io/badge/django-5.2.7+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Deployment](https://img.shields.io/badge/deployed-Google%20Cloud%20Run-4285F4.svg)
 
-## Live Demo
-
-**| [Try it live now!](https://remove-bg-1074036933469.us-central1.run.app)**
-
-Upload an image → AI removes background → Download or copy the result!
-
-> **Note:** First request after idle may take 10-15 seconds (cold start). Subsequent requests are fast!
+> **Note:** This project was previously deployed on Google Cloud Run, but the deployment is no longer active. You can run it locally or redeploy it yourself following the deployment guide.
 
 ## Features
 
@@ -24,7 +17,7 @@ Upload an image → AI removes background → Download or copy the result!
 - **Instant Preview** - See results immediately with transparent background indicator
 - **Download & Copy** - Save as PNG or copy directly to clipboard
 - **Runs anywhere** - CPU-based processing, no GPU required
-- **Production Ready** - Deployed on Google Cloud Run with CI/CD via GitHub Actions
+- **Production Ready** - Deployable to Google Cloud Run with CI/CD via GitHub Actions
 
 ### Canvas Retouch Editor
 - **Professional Brush Tool** - Fine-tune AI results with precision editing
@@ -203,22 +196,17 @@ This project follows PEP 8 guidelines and Django best practices.
 
 ## Deployment
 
-This application is deployed on **Google Cloud Run** with automated CI/CD:
+This application can be deployed to **Google Cloud Run** with automated CI/CD via GitHub Actions.
 
-- **Platform**: Cloud Run (serverless containers)
-- **Region**: us-central1
-- **CI/CD**: GitHub Actions
-- **Configuration**: 2GB RAM, 2 vCPU, 300s timeout
-- **Scaling**: 0-2 instances (scales to zero when idle)
-- **Cost**: Free tier covers 2M requests/month
+### Quick Overview
 
-### Deployment Pipeline
-
-Every push to `main` triggers:
-1. **Test Job**: Linting (ruff), formatting check, unit tests, Docker build
-2. **Deploy Job**: Cloud Build → Artifact Registry → Cloud Run deployment
-
-See `.github/workflows/deploy.yml` for the complete CI/CD configuration.
+- **Platform**: Google Cloud Run (serverless containers)
+- **Services**: Web app + Celery worker (background processing)
+- **Region**: us-central1 (recommended)
+- **Configuration**: 4GB RAM web service, 2GB worker service
+- **Scaling**: Web service scales 0-2, worker always-on (min 1 instance)
+- **Estimated Cost**: ~$13-18/month
+- **CI/CD**: Automated deployment on push to `main`
 
 ## Roadmap
 

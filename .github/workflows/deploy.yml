@@ -1,15 +1,13 @@
-name: CI/CD Pipeline
+name: CI Pipeline
+
+# Note: Deployment job is disabled since the project is not currently deployed.
+# To re-enable deployment, uncomment the 'deploy' job below and ensure GCP secrets are configured.
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
-# Prevent concurrent deployments to the same environment
-concurrency:
-  group: production-deployment
-  cancel-in-progress: false
 
 jobs:
   test:
@@ -51,145 +49,148 @@ jobs:
       - name: Build Docker image
         run: docker build --tag remove-bg:latest .
 
-  deploy:
-    needs: test
-    runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  # Deployment job is disabled - project is currently undeployed to avoid GCP charges
+  # To re-enable: uncomment this job and ensure GCP secrets are configured in GitHub
 
-    permissions:
-      contents: read
-      id-token: write
+  # deploy:
+  #   needs: test
+  #   runs-on: ubuntu-22.04
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
-    env:
-      GCP_PROJECT_ID: remove-bg-475814
-      GCP_REGION: us-central1
-      SERVICE_NAME: remove-bg
-      ARTIFACT_REGISTRY_REPO: us-central1-docker.pkg.dev/remove-bg-475814/remove-bg
-      GCS_BUCKET_NAME: remove-bg-475814-media
+  #   permissions:
+  #     contents: read
+  #     id-token: write
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+  #   env:
+  #     GCP_PROJECT_ID: remove-bg-475814
+  #     GCP_REGION: us-central1
+  #     SERVICE_NAME: remove-bg
+  #     ARTIFACT_REGISTRY_REPO: us-central1-docker.pkg.dev/remove-bg-475814/remove-bg
+  #     GCS_BUCKET_NAME: remove-bg-475814-media
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v5
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+  #     - name: Authenticate to Google Cloud
+  #       uses: google-github-actions/auth@v2
+  #       with:
+  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Build and push Docker image
-        run: |
-          gcloud builds submit \
-            --config=cloudbuild.yaml \
-            --project=${{ env.GCP_PROJECT_ID }}
+  #     - name: Set up Cloud SDK
+  #       uses: google-github-actions/setup-gcloud@v2
 
-      - name: Get existing service URLs (if exists)
-        id: get-url
-        run: |
-          set +e  # Allow command to fail without stopping script
+  #     - name: Build and push Docker image
+  #       run: |
+  #         gcloud builds submit \
+  #           --config=cloudbuild.yaml \
+  #           --project=${{ env.GCP_PROJECT_ID }}
 
-          # Extract all URLs from the run.googleapis.com/urls annotation
-          SERVICE_URLS=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
-            --region=${{ env.GCP_REGION }} \
-            --project=${{ env.GCP_PROJECT_ID }} \
-            --format='value(metadata.annotations."run.googleapis.com/urls")' 2>/dev/null)
-          EXIT_CODE=$?
-          set -e  # Re-enable exit on error
+  #     - name: Get existing service URLs (if exists)
+  #       id: get-url
+  #       run: |
+  #         set +e  # Allow command to fail without stopping script
 
-          if [ $EXIT_CODE -eq 0 ] && [ -n "$SERVICE_URLS" ]; then
-            # Parse the JSON array of URLs and convert to comma-separated list
-            # Format: '["https://url1","https://url2"]' -> "https://url1,https://url2"
-            CSRF_ORIGINS=$(echo "$SERVICE_URLS" | sed 's/\[//; s/\]//; s/"//g; s/ //g')
-            ALLOWED_HOSTS=$(echo "$CSRF_ORIGINS" | sed 's|https://||g')
+  #         # Extract all URLs from the run.googleapis.com/urls annotation
+  #         SERVICE_URLS=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+  #           --region=${{ env.GCP_REGION }} \
+  #           --project=${{ env.GCP_PROJECT_ID }} \
+  #           --format='value(metadata.annotations."run.googleapis.com/urls")' 2>/dev/null)
+  #         EXIT_CODE=$?
+  #         set -e  # Re-enable exit on error
 
-            echo "SERVICE_URL=${CSRF_ORIGINS}" >> "$GITHUB_OUTPUT"
-            echo "SERVICE_HOST=${ALLOWED_HOSTS}" >> "$GITHUB_OUTPUT"
-            echo "first_deployment=false" >> "$GITHUB_OUTPUT"
-            echo "Using Cloud Run URLs from annotation: ${ALLOWED_HOSTS}"
-          else
-            # For first deployment, use a wildcard pattern that matches Cloud Run URLs
-            echo "SERVICE_URL=" >> "$GITHUB_OUTPUT"
-            echo "SERVICE_HOST=.run.app" >> "$GITHUB_OUTPUT"
-            echo "first_deployment=true" >> "$GITHUB_OUTPUT"
-            echo "First deployment - using wildcard .run.app"
-          fi
+  #         if [ $EXIT_CODE -eq 0 ] && [ -n "$SERVICE_URLS" ]; then
+  #           # Parse the JSON array of URLs and convert to comma-separated list
+  #           # Format: '["https://url1","https://url2"]' -> "https://url1,https://url2"
+  #           CSRF_ORIGINS=$(echo "$SERVICE_URLS" | sed 's/\[//; s/\]//; s/"//g; s/ //g')
+  #           ALLOWED_HOSTS=$(echo "$CSRF_ORIGINS" | sed 's|https://||g')
 
-      - name: Deploy to Cloud Run
-        id: deploy
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: ${{ env.SERVICE_NAME }}
-          image: ${{ env.ARTIFACT_REGISTRY_REPO }}/app:latest
-          region: ${{ env.GCP_REGION }}
-          flags: |
-            --memory=4Gi
-            --cpu=2
-            --timeout=300
-            --max-instances=2
-            --min-instances=0
-            --allow-unauthenticated
-          env_vars: |
-            DEBUG=False
-            ALLOWED_HOSTS=${{ steps.get-url.outputs.SERVICE_HOST }}
-            CSRF_TRUSTED_ORIGINS=${{ steps.get-url.outputs.SERVICE_URL }}
-            ORT_DISABLE_ADVANCED_CPU_FEATURES=1
-            GCS_BUCKET_NAME=${{ env.GCS_BUCKET_NAME }}
-          secrets: |
-            SECRET_KEY=django-secret-key:latest
-            CELERY_BROKER_URL=celery-broker-url:latest
-            CELERY_RESULT_BACKEND=celery-result-backend-url:latest
+  #           echo "SERVICE_URL=${CSRF_ORIGINS}" >> "$GITHUB_OUTPUT"
+  #           echo "SERVICE_HOST=${ALLOWED_HOSTS}" >> "$GITHUB_OUTPUT"
+  #           echo "first_deployment=false" >> "$GITHUB_OUTPUT"
+  #           echo "Using Cloud Run URLs from annotation: ${ALLOWED_HOSTS}"
+  #         else
+  #           # For first deployment, use a wildcard pattern that matches Cloud Run URLs
+  #           echo "SERVICE_URL=" >> "$GITHUB_OUTPUT"
+  #           echo "SERVICE_HOST=.run.app" >> "$GITHUB_OUTPUT"
+  #           echo "first_deployment=true" >> "$GITHUB_OUTPUT"
+  #           echo "First deployment - using wildcard .run.app"
+  #         fi
 
-      - name: Update service with correct URL (if needed)
-        if: steps.get-url.outputs.first_deployment == 'true'
-        run: |
-          SERVICE_URL="${{ steps.deploy.outputs.url }}"
-          SERVICE_HOST="${SERVICE_URL#https://}"
+  #     - name: Deploy to Cloud Run
+  #       id: deploy
+  #       uses: google-github-actions/deploy-cloudrun@v2
+  #       with:
+  #         service: ${{ env.SERVICE_NAME }}
+  #         image: ${{ env.ARTIFACT_REGISTRY_REPO }}/app:latest
+  #         region: ${{ env.GCP_REGION }}
+  #         flags: |
+  #           --memory=4Gi
+  #           --cpu=2
+  #           --timeout=300
+  #           --max-instances=2
+  #           --min-instances=0
+  #           --allow-unauthenticated
+  #         env_vars: |
+  #           DEBUG=False
+  #           ALLOWED_HOSTS=${{ steps.get-url.outputs.SERVICE_HOST }}
+  #           CSRF_TRUSTED_ORIGINS=${{ steps.get-url.outputs.SERVICE_URL }}
+  #           ORT_DISABLE_ADVANCED_CPU_FEATURES=1
+  #           GCS_BUCKET_NAME=${{ env.GCS_BUCKET_NAME }}
+  #         secrets: |
+  #           SECRET_KEY=django-secret-key:latest
+  #           CELERY_BROKER_URL=celery-broker-url:latest
+  #           CELERY_RESULT_BACKEND=celery-result-backend-url:latest
 
-          echo "First deployment detected. Updating with actual URL: ${SERVICE_URL}"
+  #     - name: Update service with correct URL (if needed)
+  #       if: steps.get-url.outputs.first_deployment == 'true'
+  #       run: |
+  #         SERVICE_URL="${{ steps.deploy.outputs.url }}"
+  #         SERVICE_HOST="${SERVICE_URL#https://}"
 
-          # Wait for service to be fully ready
-          gcloud run services describe ${{ env.SERVICE_NAME }} \
-            --region=${{ env.GCP_REGION }} \
-            --project=${{ env.GCP_PROJECT_ID }} \
-            --format='value(status.conditions[0].status)' > /dev/null
+  #         echo "First deployment detected. Updating with actual URL: ${SERVICE_URL}"
 
-          gcloud run services update ${{ env.SERVICE_NAME }} \
-            --region=${{ env.GCP_REGION }} \
-            --update-env-vars="ALLOWED_HOSTS=${SERVICE_HOST},CSRF_TRUSTED_ORIGINS=${SERVICE_URL}" \
-            --project=${{ env.GCP_PROJECT_ID }}
+  #         # Wait for service to be fully ready
+  #         gcloud run services describe ${{ env.SERVICE_NAME }} \
+  #           --region=${{ env.GCP_REGION }} \
+  #           --project=${{ env.GCP_PROJECT_ID }} \
+  #           --format='value(status.conditions[0].status)' > /dev/null
 
-      - name: Show deployment URL
-        run: |
-          echo "Service deployed successfully!"
-          echo "URL: ${{ steps.deploy.outputs.url }}"
+  #         gcloud run services update ${{ env.SERVICE_NAME }} \
+  #           --region=${{ env.GCP_REGION }} \
+  #           --update-env-vars="ALLOWED_HOSTS=${SERVICE_HOST},CSRF_TRUSTED_ORIGINS=${SERVICE_URL}" \
+  #           --project=${{ env.GCP_PROJECT_ID }}
 
-      - name: Deploy Celery Worker to Cloud Run
-        id: deploy-worker
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: remove-bg-worker
-          image: ${{ env.ARTIFACT_REGISTRY_REPO }}/worker:latest
-          region: ${{ env.GCP_REGION }}
-          flags: |
-            --memory=2Gi
-            --cpu=1
-            --timeout=600
-            --max-instances=10
-            --min-instances=1
-            --no-allow-unauthenticated
-          env_vars: |
-            DEBUG=False
-            ALLOWED_HOSTS=.run.app
-            ORT_DISABLE_ADVANCED_CPU_FEATURES=1
-            GCS_BUCKET_NAME=${{ env.GCS_BUCKET_NAME }}
-          secrets: |
-            SECRET_KEY=django-secret-key:latest
-            CELERY_BROKER_URL=celery-broker-url:latest
-            CELERY_RESULT_BACKEND=celery-result-backend-url:latest
+  #     - name: Show deployment URL
+  #       run: |
+  #         echo "Service deployed successfully!"
+  #         echo "URL: ${{ steps.deploy.outputs.url }}"
 
-      - name: Show worker deployment status
-        run: |
-          echo "Celery worker deployed successfully!"
-          echo "Worker service: remove-bg-worker"
+  #     - name: Deploy Celery Worker to Cloud Run
+  #       id: deploy-worker
+  #       uses: google-github-actions/deploy-cloudrun@v2
+  #       with:
+  #         service: remove-bg-worker
+  #         image: ${{ env.ARTIFACT_REGISTRY_REPO }}/worker:latest
+  #         region: ${{ env.GCP_REGION }}
+  #         flags: |
+  #           --memory=2Gi
+  #           --cpu=1
+  #           --timeout=600
+  #           --max-instances=10
+  #           --min-instances=1
+  #           --no-allow-unauthenticated
+  #         env_vars: |
+  #           DEBUG=False
+  #           ALLOWED_HOSTS=.run.app
+  #           ORT_DISABLE_ADVANCED_CPU_FEATURES=1
+  #           GCS_BUCKET_NAME=${{ env.GCS_BUCKET_NAME }}
+  #         secrets: |
+  #           SECRET_KEY=django-secret-key:latest
+  #           CELERY_BROKER_URL=celery-broker-url:latest
+  #           CELERY_RESULT_BACKEND=celery-result-backend-url:latest
+
+  #     - name: Show worker deployment status
+  #       run: |
+  #         echo "Celery worker deployed successfully!"
+  #         echo "Worker service: remove-bg-worker"
